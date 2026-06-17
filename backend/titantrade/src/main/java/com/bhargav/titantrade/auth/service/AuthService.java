@@ -7,6 +7,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.bhargav.titantrade.auth.dto.RegisterUserRequest;
+import com.bhargav.titantrade.common.exception.EmailAlreadyExistsException;
 import com.bhargav.titantrade.user.entity.User;
 import com.bhargav.titantrade.user.enums.Role;
 import com.bhargav.titantrade.user.enums.UserStatus;
@@ -37,8 +38,9 @@ public class AuthService {
 			
 			userRepo.save(tempUser);
 			return "User Registered Successfully";
+		} else {
+			throw new EmailAlreadyExistsException("Email already exists");
 		}
-		return "Email Already exists.";
 	}
 
 
