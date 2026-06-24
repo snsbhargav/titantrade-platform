@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.bhargav.titantrade.auth.dto.RegisterUserRequest;
 import com.bhargav.titantrade.auth.service.AuthService;
+import com.bhargav.titantrade.common.response.ApiResponse;
 
 import jakarta.validation.Valid;
 
@@ -19,7 +20,7 @@ public class AuthController {
 	AuthService authService;
 	
 	@PostMapping("/register")
-	public String registerUser(@Valid @RequestBody RegisterUserRequest userRequest) {
+	public ApiResponse registerUser(@Valid @RequestBody RegisterUserRequest userRequest) {
 		return authService.registerUser(userRequest);
 	}
 	
