@@ -2,7 +2,6 @@ package com.bhargav.titantrade.auth.service;
 
 import java.time.LocalDateTime;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,11 +16,14 @@ import com.bhargav.titantrade.user.repository.UserRepository;
 @Service
 public class AuthService {
 	
-	@Autowired
-	private UserRepository userRepo;
+	private final UserRepository userRepo;
 	
-	@Autowired
-	private BCryptPasswordEncoder passwordEncoder;
+	private final BCryptPasswordEncoder passwordEncoder;
+	
+	public AuthService(UserRepository userRepo, BCryptPasswordEncoder passwordEncoder){
+		this.userRepo = userRepo;
+		this.passwordEncoder = passwordEncoder;
+	}
 	
 		
 	public ApiResponse registerUser(RegisterUserRequest userRequest) {
@@ -38,7 +40,7 @@ public class AuthService {
 			tempUser.setUpdatedOn(LocalDateTime.now());
 			
 			userRepo.save(tempUser);
-			return new ApiResponse(true, "User Registered Successfully", null);
+			return new ApiResponse(true, "User registered successfully", null);
 		} else {
 			throw new EmailAlreadyExistsException("Email already exists");
 		}
