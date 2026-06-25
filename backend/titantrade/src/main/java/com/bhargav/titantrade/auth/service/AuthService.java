@@ -55,9 +55,14 @@ public class AuthService {
 	public ResponseEntity<ApiResponse> validateUserLogin(LoginRequest loginRequest) {
 		User user = userRepo.findByEmail(loginRequest.getEmail())
 				.orElseThrow(() -> new UserNotFoundException("User not found."));
+		// Checking password
 		if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+
+			// Get Token from JwtService
+			String token = JwtService.generateToken(user.getEmail(), user.getId(), user.getRole());
+
 			LoginResponse loginResponse = new LoginResponse(user.getId(), user.getFirstName(), user.getLastName(),
-					user.getEmail(), user.getGender(), null, user.getRole());
+					user.getEmail(), user.getGender(), token, user.getRole());
 			return new ResponseEntity<ApiResponse>(new ApiResponse(true, "User login successful", loginResponse),
 					HttpStatus.OK);
 		} else {
