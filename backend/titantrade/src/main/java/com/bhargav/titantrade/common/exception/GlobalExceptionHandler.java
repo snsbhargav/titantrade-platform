@@ -19,12 +19,23 @@ public class GlobalExceptionHandler {
 		for (ObjectError i : ex.getBindingResult().getAllErrors()) {
 			errors.add(i.getDefaultMessage());
 		}
-		return new ResponseEntity<ApiResponse>(new ApiResponse(false, "Validation failed", errors), HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<ApiResponse>(new ApiResponse(false, "Validation failed", errors),
+				HttpStatus.BAD_REQUEST);
 
 	}
 
 	@ExceptionHandler(EmailAlreadyExistsException.class)
 	public ResponseEntity<ApiResponse> globalException(EmailAlreadyExistsException ex) {
 		return new ResponseEntity<ApiResponse>(new ApiResponse(false, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(UserNotFoundException.class)
+	public ResponseEntity<ApiResponse> userNotFoundException(UserNotFoundException ex) {
+		return new ResponseEntity<ApiResponse>(new ApiResponse(false, ex.getMessage(), null), HttpStatus.NOT_FOUND);
+	}
+
+	@ExceptionHandler(LoginFailedException.class)
+	public ResponseEntity<ApiResponse> loginFailedException(LoginFailedException ex) {
+		return new ResponseEntity<ApiResponse>(new ApiResponse(false, ex.getMessage(), null), HttpStatus.UNAUTHORIZED);
 	}
 }
