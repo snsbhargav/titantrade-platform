@@ -39,7 +39,7 @@ public class AuthService {
 			tempUser.setEmail(userRequest.getEmail());
 			tempUser.setGender(userRequest.getGender());
 			tempUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-			tempUser.setRole(Role.CUSTOMER);
+			tempUser.setRole(Role.ADMIN);
 			tempUser.setStatus(UserStatus.ACTIVE);
 			tempUser.setCreatedOn(LocalDateTime.now());
 			tempUser.setUpdatedOn(LocalDateTime.now());

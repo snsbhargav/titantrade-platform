@@ -1,8 +1,11 @@
 package com.bhargav.titantrade.auth.filter;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
@@ -40,8 +43,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		if (jwtService.validateToken(token) && SecurityContextHolder.getContext().getAuthentication() == null) {
 			User user = userRepo.findByEmail(jwtService.extractUsername(token))
 					.orElseThrow(() -> new UsernameNotFoundException("User Not Found"));
+			List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_"+user.getRole().name()));
 			UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user.getEmail(),
-					null, null);
+					null, authorities);
 
 			SecurityContextHolder.getContext().setAuthentication(authToken);
 		}
