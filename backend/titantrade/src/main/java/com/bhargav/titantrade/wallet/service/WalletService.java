@@ -7,12 +7,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.bhargav.titantrade.common.exception.InsufficientFundsException;
 import com.bhargav.titantrade.common.exception.UserNotFoundException;
 import com.bhargav.titantrade.common.exception.WalletNotFoundException;
 import com.bhargav.titantrade.common.response.ApiResponse;
 import com.bhargav.titantrade.user.entity.User;
 import com.bhargav.titantrade.user.repository.UserRepository;
-import com.bhargav.titantrade.wallet.dto.DepositRequest;
+import com.bhargav.titantrade.wallet.dto.WalletAmountRequest;
 import com.bhargav.titantrade.wallet.dto.WalletBalanceResponse;
 import com.bhargav.titantrade.wallet.entity.Wallet;
 import com.bhargav.titantrade.wallet.repository.WalletRepository;
@@ -43,13 +44,28 @@ public class WalletService {
 	}
 
 	@Transactional
-	public ResponseEntity<ApiResponse> depositAmount(DepositRequest depositRequest) {
+	public ResponseEntity<ApiResponse> depositAmount(WalletAmountRequest walletAmountRequest) {
 		Wallet wallet = getWalletFromContext();
-		wallet.setBalance(wallet.getBalance().add(depositRequest.getAmount()));
+		wallet.setBalance(wallet.getBalance().add(walletAmountRequest.getAmount()));
 		wallet.setUpdatedOn(LocalDateTime.now());
 		Wallet savedWallet = walletRepository.save(wallet);
 		return new ResponseEntity<ApiResponse>(new ApiResponse(true, "Amount deposited successfully.",
 				new WalletBalanceResponse(savedWallet.getBalance(), savedWallet.getCurrency())), HttpStatus.OK);
+	}
+
+	public ResponseEntity<ApiResponse> withdrawAmount(WalletAmountRequest walletAmountRequest) {
+		Wallet wallet = getWalletFromContext();
+		if (wallet.getBalance().compareTo(walletAmountRequest.getAmount()) >= 0) {
+			wallet.setBalance(wallet.getBalance().subtract(walletAmountRequest.getAmount()));
+			wallet.setUpdatedOn(LocalDateTime.now());
+			Wallet savedWallet = walletRepository.save(wallet);
+
+			return new ResponseEntity<ApiResponse>(
+					new ApiResponse(true, "Amount withdrawn successfully",
+							new WalletBalanceResponse(savedWallet.getBalance(), savedWallet.getCurrency())),
+					HttpStatus.OK);
+		}
+		throw new InsufficientFundsException("Insufficient funds");
 	}
 
 	private Wallet getWalletFromContext() {

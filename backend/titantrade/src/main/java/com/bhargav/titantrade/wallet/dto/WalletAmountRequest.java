@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DepositRequest {
+public class WalletAmountRequest {
 	
 	@NotNull(message = "Amount is required")
 	@DecimalMin(value = "0.01", message = "Amount must be greater than zero.")

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bhargav.titantrade.common.response.ApiResponse;
-import com.bhargav.titantrade.wallet.dto.DepositRequest;
+import com.bhargav.titantrade.wallet.dto.WalletAmountRequest;
 import com.bhargav.titantrade.wallet.service.WalletService;
 
 import jakarta.validation.Valid;
@@ -30,8 +30,13 @@ public class WalletController {
 	}
 	
 	@PostMapping("/deposit")
-	public ResponseEntity<ApiResponse> depositAmount(@Valid @RequestBody DepositRequest depositRequest){
-		return walletService.depositAmount(depositRequest);
+	public ResponseEntity<ApiResponse> depositAmount(@Valid @RequestBody WalletAmountRequest walletAmountRequest){
+		return walletService.depositAmount(walletAmountRequest);
+	}
+	
+	@PostMapping("/withdraw")
+	public ResponseEntity<ApiResponse> withdrawAmount(@Valid @RequestBody WalletAmountRequest walletAmountRequest){
+		return walletService.withdrawAmount(walletAmountRequest);
 	}
 
 }

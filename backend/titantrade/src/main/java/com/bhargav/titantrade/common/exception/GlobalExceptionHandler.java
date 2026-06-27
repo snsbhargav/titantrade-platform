@@ -43,4 +43,9 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse> walletNotFoundException(WalletNotFoundException ex){
 		return new ResponseEntity<ApiResponse>(new ApiResponse(false, ex.getMessage(), null), HttpStatus.NOT_FOUND);
 	}
+	
+	@ExceptionHandler(InsufficientFundsException.class)
+	public ResponseEntity<ApiResponse> insufficientFundsException(InsufficientFundsException ex){
+		return new ResponseEntity<ApiResponse>(new ApiResponse(false, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+	}
 }
