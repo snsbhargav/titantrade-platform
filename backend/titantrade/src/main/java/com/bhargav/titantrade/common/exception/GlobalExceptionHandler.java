@@ -38,4 +38,9 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse> loginFailedException(LoginFailedException ex) {
 		return new ResponseEntity<ApiResponse>(new ApiResponse(false, ex.getMessage(), null), HttpStatus.UNAUTHORIZED);
 	}
+	
+	@ExceptionHandler(WalletNotFoundException.class)
+	public ResponseEntity<ApiResponse> walletNotFoundException(WalletNotFoundException ex){
+		return new ResponseEntity<ApiResponse>(new ApiResponse(false, ex.getMessage(), null), HttpStatus.NOT_FOUND);
+	}
 }
