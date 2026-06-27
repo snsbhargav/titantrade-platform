@@ -1,5 +1,6 @@
 package com.bhargav.titantrade.auth.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,9 @@ import com.bhargav.titantrade.user.entity.User;
 import com.bhargav.titantrade.user.enums.Role;
 import com.bhargav.titantrade.user.enums.UserStatus;
 import com.bhargav.titantrade.user.repository.UserRepository;
+import com.bhargav.titantrade.wallet.entity.Wallet;
+import com.bhargav.titantrade.wallet.enums.CurrencyType;
+import com.bhargav.titantrade.wallet.repository.WalletRepository;
 
 @Service
 public class AuthService {
@@ -25,26 +29,35 @@ public class AuthService {
 	private final UserRepository userRepo;
 
 	private final BCryptPasswordEncoder passwordEncoder;
+	
+	private final WalletRepository walletRepository;
 
-	public AuthService(UserRepository userRepo, BCryptPasswordEncoder passwordEncoder) {
+	public AuthService(UserRepository userRepo, BCryptPasswordEncoder passwordEncoder, WalletRepository walletRepository) {
 		this.userRepo = userRepo;
 		this.passwordEncoder = passwordEncoder;
+		this.walletRepository = walletRepository;
 	}
 
 	public ResponseEntity<ApiResponse> registerUser(RegisterUserRequest userRequest) {
 		if (!userRepo.existsByEmail(userRequest.getEmail())) {
+			LocalDateTime now = LocalDateTime.now();
 			User tempUser = new User();
 			tempUser.setFirstName(userRequest.getFirstName());
 			tempUser.setLastName(userRequest.getLastName());
 			tempUser.setEmail(userRequest.getEmail());
 			tempUser.setGender(userRequest.getGender());
 			tempUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
-			tempUser.setRole(Role.ADMIN);
+			tempUser.setRole(Role.CUSTOMER);
 			tempUser.setStatus(UserStatus.ACTIVE);
-			tempUser.setCreatedOn(LocalDateTime.now());
-			tempUser.setUpdatedOn(LocalDateTime.now());
+			tempUser.setCreatedOn(now);
+			tempUser.setUpdatedOn(now);
 
-			userRepo.save(tempUser);
+			User user = userRepo.save(tempUser);
+			
+			//Create Wallet
+			Wallet wallet = new Wallet(null, new BigDecimal("100000.00"), now, now, user, CurrencyType.USD);
+			walletRepository.save(wallet);
+			
 			return new ResponseEntity<ApiResponse>(new ApiResponse(true, "User registered successfully", null),
 					HttpStatus.CREATED);
 		} else {
