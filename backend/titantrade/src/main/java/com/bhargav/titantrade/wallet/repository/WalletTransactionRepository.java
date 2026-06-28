@@ -13,6 +13,6 @@ import com.bhargav.titantrade.wallet.entity.WalletTransaction;
 @Repository
 public interface WalletTransactionRepository extends JpaRepository<WalletTransaction, UUID>{
 	
-	List<WalletTransaction> findByWallet(Wallet wallet);
+	List<WalletTransaction> findByWalletOrderByCreatedOnDesc(Wallet wallet);
 
 }
