@@ -53,7 +53,7 @@ public class WalletService {
 		Wallet savedWallet = walletRepository.save(wallet);
 
 		// Add record to wallet_transaction table
-		recordWalletTransaction(savedWallet, walletAmountRequest.getAmount(), TransactionType.CREDIT,
+		recordWalletTransaction(savedWallet, walletAmountRequest.getAmount(), TransactionType.DEPOSIT,
 				TransactionStatus.SUCCESS);
 
 		return new ResponseEntity<ApiResponse>(new ApiResponse(true, "Amount deposited successfully.",
@@ -69,7 +69,7 @@ public class WalletService {
 			Wallet savedWallet = walletRepository.save(wallet);
 
 			// Add record to wallet_transaction table
-			recordWalletTransaction(savedWallet, walletAmountRequest.getAmount(), TransactionType.DEBIT,
+			recordWalletTransaction(savedWallet, walletAmountRequest.getAmount(), TransactionType.WITHDRAW,
 					TransactionStatus.SUCCESS);
 
 			return new ResponseEntity<ApiResponse>(
@@ -77,7 +77,7 @@ public class WalletService {
 							new WalletBalanceResponse(savedWallet.getBalance(), savedWallet.getCurrency())),
 					HttpStatus.OK);
 		}
-		recordWalletTransaction(wallet, walletAmountRequest.getAmount(), TransactionType.DEBIT,
+		recordWalletTransaction(wallet, walletAmountRequest.getAmount(), TransactionType.WITHDRAW,
 				TransactionStatus.FAILED);
 
 		throw new InsufficientFundsException("Insufficient funds");
