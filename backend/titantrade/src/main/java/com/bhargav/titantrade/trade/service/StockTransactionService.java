@@ -1,0 +1,42 @@
+package com.bhargav.titantrade.trade.service;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import org.springframework.stereotype.Service;
+
+import com.bhargav.titantrade.stock.entity.Stock;
+import com.bhargav.titantrade.trade.entity.StockTransaction;
+import com.bhargav.titantrade.trade.enums.TradeStatus;
+import com.bhargav.titantrade.trade.enums.TradeType;
+import com.bhargav.titantrade.trade.repository.StockTransactionRepository;
+import com.bhargav.titantrade.user.entity.User;
+
+@Service
+public class StockTransactionService {
+
+	private final StockTransactionRepository stockTransactionRepository;
+
+	public StockTransactionService(StockTransactionRepository stockTransactionRepository) {
+		this.stockTransactionRepository = stockTransactionRepository;
+	}
+
+	public void recordStockTransaction(User user, Stock stock, BigDecimal pricePerShare, BigDecimal quantity,
+			BigDecimal totalAmount, TradeStatus tradeStatus, TradeType tradeType, LocalDateTime createdOn,
+			LocalDateTime updatedOn, LocalDateTime executedAt) {
+		StockTransaction stockTransaction = new StockTransaction();
+		stockTransaction.setUser(user);
+		stockTransaction.setStock(stock);
+		stockTransaction.setPricePerShare(pricePerShare);
+		stockTransaction.setQuantity(quantity);
+		stockTransaction.setTotalAmount(totalAmount);
+		stockTransaction.setTradeStatus(tradeStatus);
+		stockTransaction.setTradeType(tradeType);
+		stockTransaction.setCreatedOn(createdOn);
+		stockTransaction.setUpdatedOn(updatedOn);
+		stockTransaction.setExecutedAt(executedAt);
+		stockTransactionRepository.save(stockTransaction);
+
+	}
+
+}

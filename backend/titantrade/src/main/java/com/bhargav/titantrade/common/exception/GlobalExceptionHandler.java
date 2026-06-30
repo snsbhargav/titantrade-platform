@@ -48,4 +48,14 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse> insufficientFundsException(InsufficientFundsException ex){
 		return new ResponseEntity<ApiResponse>(new ApiResponse(false, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
 	}
+	
+	@ExceptionHandler(StockNotFoundException.class)
+	public ResponseEntity<ApiResponse> stockNotFoundException(StockNotFoundException ex){
+		return new ResponseEntity<ApiResponse>(new ApiResponse(false, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+	}
+	
+	@ExceptionHandler(PortfolioHoldingNotFoundException.class)
+	public ResponseEntity<ApiResponse> portfolioHoldingNotFoundException(PortfolioHoldingNotFoundException ex){
+		return new ResponseEntity<ApiResponse>(new ApiResponse(false, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+	}
 }

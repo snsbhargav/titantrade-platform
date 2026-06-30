@@ -60,7 +60,7 @@ public class WalletService {
 				new WalletBalanceResponse(savedWallet.getBalance(), savedWallet.getCurrency())), HttpStatus.OK);
 	}
 
-	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	@Transactional
 	public ResponseEntity<ApiResponse> withdrawAmount(WalletAmountRequest walletAmountRequest) {
 		Wallet wallet = currentUserService.getCurrentWallet();
 		if (wallet.getBalance().compareTo(walletAmountRequest.getAmount()) >= 0) {
