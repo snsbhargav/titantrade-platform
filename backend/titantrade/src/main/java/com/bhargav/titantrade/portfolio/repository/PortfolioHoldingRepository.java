@@ -1,5 +1,6 @@
 package com.bhargav.titantrade.portfolio.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -15,5 +16,7 @@ public interface PortfolioHoldingRepository extends JpaRepository<PortfolioHoldi
 	List<PortfolioHolding> findByUserId(UUID userId);
 	
 	Optional<PortfolioHolding> findByUserIdAndStockId(UUID userId, UUID stockId);
+	
+	List<PortfolioHolding> findByUserIdAndQuantityGreaterThan(UUID userId, BigDecimal quantity);
 
 }

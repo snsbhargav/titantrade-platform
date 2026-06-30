@@ -16,7 +16,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PortfolioHoldingResponse {
-	@NotNull
 	private UUID holdingId;
 	private UUID stockId;
 	private String ticker;

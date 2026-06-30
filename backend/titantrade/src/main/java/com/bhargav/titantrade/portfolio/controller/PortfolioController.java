@@ -2,6 +2,7 @@ package com.bhargav.titantrade.portfolio.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +34,11 @@ public class PortfolioController {
 	@PostMapping("/sellStock")
 	public ResponseEntity<ApiResponse> sellStock(@Valid @RequestBody SellStockRequest sellStockRequest) {
 		return new ResponseEntity<ApiResponse>(portfolioHoldingService.sellStock(sellStockRequest), HttpStatus.OK);
+	}
+	
+	@GetMapping
+	public ResponseEntity<ApiResponse> getMyPortfolio(){
+		return new ResponseEntity<ApiResponse>(portfolioHoldingService.getMyPortfolio(), HttpStatus.OK);
 	}
 
 }
