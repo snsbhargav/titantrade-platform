@@ -45,7 +45,7 @@ public class WalletService {
 				new ApiResponse(true, "Wallet found successfully", walletBalanceResponse), HttpStatus.OK);
 	}
 
-	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	@Transactional
 	public ResponseEntity<ApiResponse> depositAmount(WalletAmountRequest walletAmountRequest) {
 		Wallet wallet = currentUserService.getCurrentWallet();
 		wallet.setBalance(wallet.getBalance().add(walletAmountRequest.getAmount()));
