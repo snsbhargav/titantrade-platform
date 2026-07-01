@@ -46,7 +46,7 @@ public class TradeService {
 	public TradeService(StockTransactionRepository stockTransactionRepository,
 			CurrentUserService currentUserService, StockService stockService,
 			PortfolioHoldingRepository portfolioHoldingRepository, StockRepository stockRepository,
-			WalletService walletService, TradeService stockTransactionService) {
+			WalletService walletService) {
 		this.stockTransactionRepository = stockTransactionRepository;
 		this.currentUserService = currentUserService;
 		this.stockService = stockService;

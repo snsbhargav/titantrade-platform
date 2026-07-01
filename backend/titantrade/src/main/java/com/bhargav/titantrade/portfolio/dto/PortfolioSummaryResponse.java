@@ -14,5 +14,8 @@ public class PortfolioSummaryResponse {
 	
 	private List<PortfolioHoldingResponse> holdings;
 	private BigDecimal totalPortfolioValue;
+	private BigDecimal totalInvestedValue;
+	private BigDecimal totalUnrealizedProfitLoss;
+	private BigDecimal totalUnrealizedProfitLossPercentage;
 
 }

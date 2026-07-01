@@ -1,13 +1,13 @@
 package com.bhargav.titantrade.portfolio.dto;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.bhargav.titantrade.portfolio.entity.PortfolioHolding;
 import com.bhargav.titantrade.stock.entity.Stock;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,7 +26,10 @@ public class PortfolioHoldingResponse {
 	private BigDecimal marketValue;
 	private LocalDateTime createdOn;
 	private LocalDateTime updatedOn;
-	
+	private BigDecimal investedValue;
+	private BigDecimal unrealizedProfitLoss;
+	private BigDecimal unrealizedProfitLossPercentage;
+
 	public static PortfolioHoldingResponse toDto(PortfolioHolding portfolioHolding) {
 		PortfolioHoldingResponse portfolioHoldingResponse = new PortfolioHoldingResponse();
 		Stock stock = portfolioHolding.getStock();
@@ -37,10 +40,19 @@ public class PortfolioHoldingResponse {
 		portfolioHoldingResponse.setQuantity(portfolioHolding.getQuantity());
 		portfolioHoldingResponse.setAverageBuyPrice(portfolioHolding.getAverageBuyPrice());
 		portfolioHoldingResponse.setCurrentPrice(stock.getLastKnownPrice());
-		portfolioHoldingResponse.setMarketValue(portfolioHolding.getQuantity().multiply(stock.getLastKnownPrice()));
+		BigDecimal marketValue = portfolioHolding.getQuantity().multiply(stock.getLastKnownPrice());
+		portfolioHoldingResponse.setMarketValue(marketValue);
 		portfolioHoldingResponse.setCreatedOn(portfolioHolding.getCreatedOn());
 		portfolioHoldingResponse.setUpdatedOn(portfolioHolding.getUpdatedOn());
+		BigDecimal investedValue = portfolioHolding.getAverageBuyPrice().multiply(portfolioHolding.getQuantity());
+		portfolioHoldingResponse
+				.setInvestedValue(investedValue);
+		BigDecimal unrealizedProfitLoss = portfolioHoldingResponse.getMarketValue().subtract(portfolioHoldingResponse.getInvestedValue());
 		
+		portfolioHoldingResponse.setUnrealizedProfitLoss(unrealizedProfitLoss);
+		BigDecimal unrealizedProfitLossPercentage = (unrealizedProfitLoss.divide(investedValue, 4, RoundingMode.HALF_UP)).multiply(BigDecimal.valueOf(100L));
+		
+		portfolioHoldingResponse.setUnrealizedProfitLossPercentage(unrealizedProfitLossPercentage);
 		return portfolioHoldingResponse;
 	}
 
