@@ -14,4 +14,9 @@ public interface StockTransactionRepository extends JpaRepository<StockTransacti
 	List<StockTransaction> findByUserId(UUID userId);
 	
 	List<StockTransaction> findByUserIdAndStockId(UUID userId, UUID stockId);
+
+	List<StockTransaction> findByUserIdOrderByExecutedAtDesc(UUID id);
+
+	List<StockTransaction> findByUserIdAndStockIdOrderByExecutedAtDesc(UUID id, UUID stockId);
+	
 }
