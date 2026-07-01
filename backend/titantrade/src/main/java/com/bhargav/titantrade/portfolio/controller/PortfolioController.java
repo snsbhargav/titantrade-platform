@@ -25,16 +25,6 @@ public class PortfolioController {
 		this.portfolioHoldingService = portfolioHoldingService;
 	}
 
-	@PostMapping("/buyStock")
-	public ResponseEntity<ApiResponse> buyStock(@Valid @RequestBody BuyStockRequest buyStockRequest) {
-		return new ResponseEntity<ApiResponse>(portfolioHoldingService.buyStock(buyStockRequest), HttpStatus.OK);
-
-	}
-
-	@PostMapping("/sellStock")
-	public ResponseEntity<ApiResponse> sellStock(@Valid @RequestBody SellStockRequest sellStockRequest) {
-		return new ResponseEntity<ApiResponse>(portfolioHoldingService.sellStock(sellStockRequest), HttpStatus.OK);
-	}
 	
 	@GetMapping
 	public ResponseEntity<ApiResponse> getMyPortfolio(){
