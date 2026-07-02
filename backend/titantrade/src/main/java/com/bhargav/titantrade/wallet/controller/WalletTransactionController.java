@@ -1,5 +1,6 @@
 package com.bhargav.titantrade.wallet.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +21,7 @@ public class WalletTransactionController {
 	
 	@GetMapping("/")
 	public ResponseEntity<ApiResponse> findTransactionsByWallet(){
-		return walletTransactionService.findTransactionsByWallet();
+		return new ResponseEntity<ApiResponse>(walletTransactionService.findTransactionsByWallet(), HttpStatus.OK);
 	}
 
 }

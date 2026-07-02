@@ -11,11 +11,14 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -33,7 +36,7 @@ public class WalletTransaction {
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
 	private UUID id;
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "wallet_id", nullable = false)
 	private Wallet wallet;
 	@Column(precision = 19, scale = 2, nullable = false)
@@ -41,12 +44,20 @@ public class WalletTransaction {
 	@Column(precision = 19, scale = 2, nullable = false)
 	private BigDecimal balanceAfterTransaction;
 	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
 	private TransactionType transactionType;
 	@Column(nullable = false)
 	private LocalDateTime createdOn;
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private TransactionStatus transactionStatus;
+	
+	@PrePersist
+	protected void onCreate() {
+		LocalDateTime now = LocalDateTime.now();
+		this.createdOn = now;
+	}
+
 	
 
 }

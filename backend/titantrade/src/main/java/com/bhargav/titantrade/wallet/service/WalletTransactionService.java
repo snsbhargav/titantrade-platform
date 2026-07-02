@@ -20,21 +20,20 @@ public class WalletTransactionService {
 	private final CurrentUserService currentUserService;
 	private final WalletTransactionRepository walletTransactionRepository;
 
-	public WalletTransactionService(CurrentUserService currentUserService, WalletTransactionRepository walletTransactionRepository) {
+	public WalletTransactionService(CurrentUserService currentUserService,
+			WalletTransactionRepository walletTransactionRepository) {
 		this.walletTransactionRepository = walletTransactionRepository;
 		this.currentUserService = currentUserService;
 	}
 
-	public ResponseEntity<ApiResponse> findTransactionsByWallet() {
+	public ApiResponse findTransactionsByWallet() {
 		Wallet wallet = currentUserService.getCurrentWallet();
 		List<WalletTransaction> transactions = walletTransactionRepository.findByWalletOrderByCreatedOnDesc(wallet);
 		List<WalletTransactionResponse> responseTransactions = new ArrayList<>();
 		for (WalletTransaction transaction : transactions) {
 			responseTransactions.add(WalletTransactionResponse.toDto(transaction));
 		}
-		return new ResponseEntity<ApiResponse>(
-				new ApiResponse(true, "Wallet transactions retrieved successfully", responseTransactions),
-				HttpStatus.OK);
+		return new ApiResponse(true, "Wallet transactions retrieved successfully", responseTransactions);
 	}
 
 }

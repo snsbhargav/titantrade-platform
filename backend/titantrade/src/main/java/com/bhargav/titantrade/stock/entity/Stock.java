@@ -14,6 +14,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -52,6 +54,20 @@ public class Stock {
 	private LocalDateTime createdOn;
 	@Column(nullable = false)
 	private LocalDateTime updatedOn;
+	
+	@PrePersist
+	protected void onCreate() {
+		LocalDateTime now = LocalDateTime.now();
+		this.createdOn = now;
+		this.updatedOn = now;
+		if(this.lastPriceUpdatedAt == null)
+			this.lastPriceUpdatedAt = now;
+	}
+	
+	@PreUpdate
+	protected void OnUpdate() {
+		this.updatedOn = LocalDateTime.now();
+	}
 	
 
 }

@@ -1,5 +1,6 @@
 package com.bhargav.titantrade.auth.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,12 +27,12 @@ public class AuthController {
 	
 	@PostMapping("/register")
 	public ResponseEntity<ApiResponse> registerUser(@Valid @RequestBody RegisterUserRequest userRequest) {
-		return authService.registerUser(userRequest);
+		return new ResponseEntity<ApiResponse>(authService.registerUser(userRequest), HttpStatus.CREATED);
 	}
 	
 	@PostMapping("/login")
 	public ResponseEntity<ApiResponse> userLogin(@Valid @RequestBody LoginRequest loginRequest) {
-		return authService.validateUserLogin(loginRequest);
+		return new ResponseEntity<ApiResponse>(authService.validateUserLogin(loginRequest), HttpStatus.OK);
 	}
 
 }

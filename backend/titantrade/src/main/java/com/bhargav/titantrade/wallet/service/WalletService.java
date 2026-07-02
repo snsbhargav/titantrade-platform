@@ -23,59 +23,55 @@ import com.bhargav.titantrade.wallet.repository.WalletTransactionRepository;
 
 @Service
 public class WalletService {
-	
+
 	private final CurrentUserService currentUserService;
 
 	private final WalletRepository walletRepository;
 
 	private final WalletTransactionRepository walletTransactionRepository;
-	
-	public WalletService(CurrentUserService currentUserService, WalletRepository walletRepository, WalletTransactionRepository walletTransactionRepository) {
+
+	public WalletService(CurrentUserService currentUserService, WalletRepository walletRepository,
+			WalletTransactionRepository walletTransactionRepository) {
 		this.walletRepository = walletRepository;
 		this.walletTransactionRepository = walletTransactionRepository;
 		this.currentUserService = currentUserService;
 	}
 
-	public ResponseEntity<ApiResponse> findWalletByUser() {
+	public ApiResponse findWalletByUser() {
 		Wallet wallet = currentUserService.getCurrentWallet();
 
 		WalletBalanceResponse walletBalanceResponse = new WalletBalanceResponse(wallet.getBalance(),
 				wallet.getCurrency());
-		return new ResponseEntity<ApiResponse>(
-				new ApiResponse(true, "Wallet found successfully", walletBalanceResponse), HttpStatus.OK);
+		return new ApiResponse(true, "Wallet found successfully", walletBalanceResponse);
 	}
 
 	@Transactional
-	public ResponseEntity<ApiResponse> depositAmount(WalletAmountRequest walletAmountRequest) {
+	public ApiResponse depositAmount(WalletAmountRequest walletAmountRequest) {
 		Wallet wallet = currentUserService.getCurrentWallet();
 		wallet.setBalance(wallet.getBalance().add(walletAmountRequest.getAmount()));
-		wallet.setUpdatedOn(LocalDateTime.now());
 		Wallet savedWallet = walletRepository.save(wallet);
 
 		// Add record to wallet_transaction table
 		recordWalletTransaction(savedWallet, walletAmountRequest.getAmount(), TransactionType.DEPOSIT,
 				TransactionStatus.SUCCESS);
 
-		return new ResponseEntity<ApiResponse>(new ApiResponse(true, "Amount deposited successfully.",
-				new WalletBalanceResponse(savedWallet.getBalance(), savedWallet.getCurrency())), HttpStatus.OK);
+		return new ApiResponse(true, "Amount deposited successfully.",
+				new WalletBalanceResponse(savedWallet.getBalance(), savedWallet.getCurrency()));
 	}
 
 	@Transactional
-	public ResponseEntity<ApiResponse> withdrawAmount(WalletAmountRequest walletAmountRequest) {
+	public ApiResponse withdrawAmount(WalletAmountRequest walletAmountRequest) {
 		Wallet wallet = currentUserService.getCurrentWallet();
 		if (wallet.getBalance().compareTo(walletAmountRequest.getAmount()) >= 0) {
 			wallet.setBalance(wallet.getBalance().subtract(walletAmountRequest.getAmount()));
-			wallet.setUpdatedOn(LocalDateTime.now());
 			Wallet savedWallet = walletRepository.save(wallet);
 
 			// Add record to wallet_transaction table
 			recordWalletTransaction(savedWallet, walletAmountRequest.getAmount(), TransactionType.WITHDRAW,
 					TransactionStatus.SUCCESS);
 
-			return new ResponseEntity<ApiResponse>(
-					new ApiResponse(true, "Amount withdrawn successfully",
-							new WalletBalanceResponse(savedWallet.getBalance(), savedWallet.getCurrency())),
-					HttpStatus.OK);
+			return new ApiResponse(true, "Amount withdrawn successfully",
+					new WalletBalanceResponse(savedWallet.getBalance(), savedWallet.getCurrency()));
 		}
 		recordWalletTransaction(wallet, walletAmountRequest.getAmount(), TransactionType.WITHDRAW,
 				TransactionStatus.FAILED);
@@ -88,7 +84,6 @@ public class WalletService {
 		WalletTransaction walletTransaction = new WalletTransaction();
 		walletTransaction.setAmount(amount);
 		walletTransaction.setBalanceAfterTransaction(wallet.getBalance());
-		walletTransaction.setCreatedOn(LocalDateTime.now());
 		walletTransaction.setWallet(wallet);
 		walletTransaction.setTransactionType(type);
 		walletTransaction.setTransactionStatus(status);

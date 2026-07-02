@@ -38,9 +38,8 @@ public class AuthService {
 		this.walletRepository = walletRepository;
 	}
 
-	public ResponseEntity<ApiResponse> registerUser(RegisterUserRequest userRequest) {
+	public ApiResponse registerUser(RegisterUserRequest userRequest) {
 		if (!userRepo.existsByEmail(userRequest.getEmail())) {
-			LocalDateTime now = LocalDateTime.now();
 			User tempUser = new User();
 			tempUser.setFirstName(userRequest.getFirstName());
 			tempUser.setLastName(userRequest.getLastName());
@@ -49,23 +48,20 @@ public class AuthService {
 			tempUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
 			tempUser.setRole(Role.CUSTOMER);
 			tempUser.setStatus(UserStatus.ACTIVE);
-			tempUser.setCreatedOn(now);
-			tempUser.setUpdatedOn(now);
 
 			User user = userRepo.save(tempUser);
 			
 			//Create Wallet
-			Wallet wallet = new Wallet(null, new BigDecimal("100000.00"), now, now, user, CurrencyType.USD);
+			Wallet wallet = new Wallet(new BigDecimal("100000.00"), user, CurrencyType.USD);
 			walletRepository.save(wallet);
 			
-			return new ResponseEntity<ApiResponse>(new ApiResponse(true, "User registered successfully", null),
-					HttpStatus.CREATED);
+			return new ApiResponse(true, "User registered successfully", null);
 		} else {
 			throw new EmailAlreadyExistsException("Email already exists");
 		}
 	}
 
-	public ResponseEntity<ApiResponse> validateUserLogin(LoginRequest loginRequest) {
+	public ApiResponse validateUserLogin(LoginRequest loginRequest) {
 		User user = userRepo.findByEmail(loginRequest.getEmail())
 				.orElseThrow(() -> new UserNotFoundException("User not found."));
 		// Checking password
@@ -76,8 +72,7 @@ public class AuthService {
 
 			LoginResponse loginResponse = new LoginResponse(user.getId(), user.getFirstName(), user.getLastName(),
 					user.getEmail(), user.getGender(), token, user.getRole());
-			return new ResponseEntity<ApiResponse>(new ApiResponse(true, "User login successful", loginResponse),
-					HttpStatus.OK);
+			return new ApiResponse(true, "User login successful", loginResponse);
 		} else {
 			throw new LoginFailedException("Invalid email or password");
 		}

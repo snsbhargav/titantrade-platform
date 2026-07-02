@@ -1,4 +1,4 @@
-package com.bhargav.titantrade.portfolio.dto;
+package com.bhargav.titantrade.trade.dto;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class BuyStockRequest {
+public class SellStockRequest {
 	
 	@NotNull(message = "Stock id is required")
 	private UUID stockId;

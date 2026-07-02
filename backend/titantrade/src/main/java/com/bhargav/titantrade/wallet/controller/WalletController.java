@@ -1,5 +1,6 @@
 package com.bhargav.titantrade.wallet.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,17 +27,17 @@ public class WalletController {
 	
 	@GetMapping("/walletBalance")
 	public ResponseEntity<ApiResponse> getWallet() { 
-		return walletService.findWalletByUser();
+		return new ResponseEntity<ApiResponse>(walletService.findWalletByUser(), HttpStatus.OK);
 	}
 	
 	@PostMapping("/deposit")
 	public ResponseEntity<ApiResponse> depositAmount(@Valid @RequestBody WalletAmountRequest walletAmountRequest){
-		return walletService.depositAmount(walletAmountRequest);
+		return new ResponseEntity<ApiResponse>(walletService.depositAmount(walletAmountRequest), HttpStatus.OK);
 	}
 	
 	@PostMapping("/withdraw")
 	public ResponseEntity<ApiResponse> withdrawAmount(@Valid @RequestBody WalletAmountRequest walletAmountRequest){
-		return walletService.withdrawAmount(walletAmountRequest);
+		return new ResponseEntity<ApiResponse>(walletService.withdrawAmount(walletAmountRequest), HttpStatus.OK);
 	}
 
 }

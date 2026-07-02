@@ -17,6 +17,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -43,5 +45,23 @@ public class Wallet {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private CurrencyType currency;
+	
+	@PrePersist
+	protected void onCreate() {
+		LocalDateTime now = LocalDateTime.now();
+		this.createdOn = now;
+		this.updatedOn = now;
+	}
+	
+	@PreUpdate
+	protected void onUpdate() {
+		this.updatedOn = LocalDateTime.now();
+	}
+
+	public Wallet(BigDecimal balance, User user, CurrencyType currency) {
+		this.balance = balance;
+		this.user = user;
+		this.currency = currency;
+	}
 
 }

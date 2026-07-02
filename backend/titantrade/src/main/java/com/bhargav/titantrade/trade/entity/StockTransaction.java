@@ -18,6 +18,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -59,5 +61,19 @@ public class StockTransaction {
 	private LocalDateTime createdOn;
 	@Column(nullable = false)
 	private LocalDateTime updatedOn;
+	
+	@PrePersist
+	protected void onCreate() {
+		LocalDateTime now = LocalDateTime.now();
+		this.createdOn = now;
+		this.updatedOn = now;
+		if(this.executedAt == null)
+			this.executedAt = now;
+	}
+	
+	@PreUpdate
+	protected void onUpdate() {
+		this.updatedOn = LocalDateTime.now();
+	}
 
 }

@@ -35,18 +35,14 @@ public class CreateStockRequest {
 	private AssetType assetType;
 	
 	public static Stock toEntity(CreateStockRequest request) {
-		LocalDateTime now =  LocalDateTime.now();
 		Stock stock = new Stock();
 			stock.setTicker(request.getTicker().trim().toUpperCase());
 			stock.setCompanyName(request.getCompanyName().trim());
 			stock.setLastKnownPrice(request.getLastKnownPrice());
-			stock.setLastPriceUpdatedAt(now);
 			stock.setExchange(request.getExchange().trim());
 			stock.setCurrency(request.getCurrency());
 			stock.setSector(request.getSector().trim());
 			stock.setAssetType(request.getAssetType());
-			stock.setCreatedOn(now);
-			stock.setUpdatedOn(now);
 			stock.setActive(true);
 			
 			return stock;

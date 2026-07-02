@@ -30,7 +30,6 @@ public class WalletTransactionResponse {
 		transaction.setBalanceAfterTransaction(walletTransaction.getBalanceAfterTransaction());
 		transaction.setTransactionType(walletTransaction.getTransactionType());
 		transaction.setTransactionStatus(walletTransaction.getTransactionStatus());
-		transaction.setCreatedOn(walletTransaction.getCreatedOn());
 		return transaction;
 	}
 	

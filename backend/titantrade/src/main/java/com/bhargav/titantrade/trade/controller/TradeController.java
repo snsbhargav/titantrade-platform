@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.bhargav.titantrade.common.response.ApiResponse;
-import com.bhargav.titantrade.portfolio.dto.BuyStockRequest;
-import com.bhargav.titantrade.portfolio.dto.SellStockRequest;
+import com.bhargav.titantrade.trade.dto.BuyStockRequest;
+import com.bhargav.titantrade.trade.dto.SellStockRequest;
 import com.bhargav.titantrade.trade.service.TradeService;
 
 import jakarta.validation.Valid;
