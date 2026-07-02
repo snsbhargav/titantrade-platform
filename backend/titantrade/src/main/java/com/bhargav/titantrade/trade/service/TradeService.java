@@ -7,6 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.bhargav.titantrade.common.exception.InactiveStockException;
@@ -24,6 +28,7 @@ import com.bhargav.titantrade.stock.service.StockService;
 import com.bhargav.titantrade.trade.dto.BuyStockRequest;
 import com.bhargav.titantrade.trade.dto.SellStockRequest;
 import com.bhargav.titantrade.trade.dto.StockTransactionResponse;
+import com.bhargav.titantrade.trade.dto.TradeHistoryResponse;
 import com.bhargav.titantrade.trade.entity.StockTransaction;
 import com.bhargav.titantrade.trade.enums.TradeStatus;
 import com.bhargav.titantrade.trade.enums.TradeType;
@@ -44,10 +49,9 @@ public class TradeService {
 	private final StockRepository stockRepository;
 	private final WalletService walletService;
 
-	public TradeService(StockTransactionRepository stockTransactionRepository,
-			CurrentUserService currentUserService, StockService stockService,
-			PortfolioHoldingRepository portfolioHoldingRepository, StockRepository stockRepository,
-			WalletService walletService) {
+	public TradeService(StockTransactionRepository stockTransactionRepository, CurrentUserService currentUserService,
+			StockService stockService, PortfolioHoldingRepository portfolioHoldingRepository,
+			StockRepository stockRepository, WalletService walletService) {
 		this.stockTransactionRepository = stockTransactionRepository;
 		this.currentUserService = currentUserService;
 		this.stockService = stockService;
@@ -70,30 +74,42 @@ public class TradeService {
 		stockTransactionRepository.save(stockTransaction);
 	}
 
-	public ApiResponse getMyTradeHistory(UUID stockId) {
+	public ApiResponse getMyTradeHistory(UUID stockId, TradeType tradeType, int page, int size) {
 		User user = currentUserService.getCurrentUser();
 		List<StockTransactionResponse> response = new ArrayList<>();
-		List<StockTransaction> tradeHistory;
-		if (stockId == null)
-			tradeHistory = stockTransactionRepository.findByUserIdOrderByExecutedAtDesc(user.getId());
-		else {
+		Page<StockTransaction> tradeHistory;
+		if (size > 100) size = 100;
+		if(size<0) size = 10;
+		if(page<0) page=0;
+		Pageable pageable = PageRequest.of(page, size, Sort.by("executedAt").descending());
+		if (stockId == null && tradeType == null) {
+			tradeHistory = stockTransactionRepository.findByUserId(user.getId(), pageable);
+		} else if (stockId == null && tradeType != null) {
+			tradeHistory = stockTransactionRepository.findByUserIdAndTradeType(user.getId(), tradeType, pageable);
+		} else if (stockId != null && tradeType == null) {
 			stockService.getStockById(stockId);
-			tradeHistory = stockTransactionRepository.findByUserIdAndStockIdOrderByExecutedAtDesc(user.getId(),
-					stockId);
+			tradeHistory = stockTransactionRepository.findByUserIdAndStockId(user.getId(), stockId, pageable);
+		} else {
+			stockService.getStockById(stockId);
+			tradeHistory = stockTransactionRepository.findByUserIdAndStockIdAndTradeType(user.getId(), stockId,
+					tradeType, pageable);
 		}
-		for (StockTransaction transaction : tradeHistory) {
+
+		for (StockTransaction transaction : tradeHistory.getContent()) {
 			response.add(StockTransactionResponse.toDto(transaction));
 		}
-		return new ApiResponse(true, "Stock transactions retrieved successfully", response);
+		TradeHistoryResponse tradeHistoryResponse = new TradeHistoryResponse(response, tradeHistory.getNumber(),
+				tradeHistory.getSize(), tradeHistory.getTotalElements(), tradeHistory.getTotalPages(),
+				tradeHistory.isLast());
+		return new ApiResponse(true, "Stock transactions retrieved successfully", tradeHistoryResponse);
 	}
-
 
 	@Transactional
 	public ApiResponse buyStock(BuyStockRequest buyStockRequest) {
 		Stock stock = stockRepository.findById(buyStockRequest.getStockId())
 				.orElseThrow(() -> new StockNotFoundException("Stock not found"));
-		//If stock is inactive don't trade
-		if(!stock.isActive())
+		// If stock is inactive don't trade
+		if (!stock.isActive())
 			throw new InactiveStockException("Stock is inactive and cannot be traded");
 		User user = currentUserService.getCurrentUser();
 		BigDecimal executionPrice = stock.getLastKnownPrice();
@@ -152,8 +168,8 @@ public class TradeService {
 		walletService.depositAmount(new WalletAmountRequest(sellQuantity.multiply(executionPrice)));
 
 		// add portfolio transaction
-		recordStockTransaction(user, stock, executionPrice, sellQuantity,
-				executionPrice.multiply(sellQuantity), TradeStatus.SUCCESS, TradeType.SELL);
+		recordStockTransaction(user, stock, executionPrice, sellQuantity, executionPrice.multiply(sellQuantity),
+				TradeStatus.SUCCESS, TradeType.SELL);
 
 		return new ApiResponse(true, "Stock sold successfully", PortfolioHoldingResponse.toDto(portfolioHolding));
 	}
