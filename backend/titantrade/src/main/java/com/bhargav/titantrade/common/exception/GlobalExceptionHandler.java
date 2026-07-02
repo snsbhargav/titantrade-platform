@@ -68,4 +68,9 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse> stockAlreadyExistsException(StockAlreadyExistsException ex){
 		return new ResponseEntity<ApiResponse>(new ApiResponse(false, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
 	}
+	
+	@ExceptionHandler(InactiveStockException.class)
+	public ResponseEntity<ApiResponse> handleInactiveStockException(InactiveStockException ex){
+		return new ResponseEntity<ApiResponse>(new ApiResponse(false, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+	}
 }

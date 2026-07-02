@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.bhargav.titantrade.common.exception.InactiveStockException;
 import com.bhargav.titantrade.common.exception.InsufficientHoldingQuantityException;
 import com.bhargav.titantrade.common.exception.PortfolioHoldingNotFoundException;
 import com.bhargav.titantrade.common.exception.StockNotFoundException;
@@ -94,6 +95,9 @@ public class TradeService {
 	public ApiResponse buyStock(BuyStockRequest buyStockRequest) {
 		Stock stock = stockRepository.findById(buyStockRequest.getStockId())
 				.orElseThrow(() -> new StockNotFoundException("Stock not found"));
+		//If stock is inactive don't trade
+		if(!stock.isActive())
+			throw new InactiveStockException("Stock is inactive and cannot be traded");
 		User user = currentUserService.getCurrentUser();
 		BigDecimal executionPrice = stock.getLastKnownPrice();
 		BigDecimal totalBuyPrice = executionPrice.multiply(buyStockRequest.getQuantity());
