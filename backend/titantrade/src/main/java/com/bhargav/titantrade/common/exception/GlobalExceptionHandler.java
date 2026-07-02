@@ -63,4 +63,9 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse> insufficientHoldingQuantityException(InsufficientHoldingQuantityException ex){
 		return new ResponseEntity<ApiResponse>(new ApiResponse(false, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
 	}
+	
+	@ExceptionHandler(StockAlreadyExistsException.class)
+	public ResponseEntity<ApiResponse> stockAlreadyExistsException(StockAlreadyExistsException ex){
+		return new ResponseEntity<ApiResponse>(new ApiResponse(false, ex.getMessage(), null), HttpStatus.BAD_REQUEST);
+	}
 }
