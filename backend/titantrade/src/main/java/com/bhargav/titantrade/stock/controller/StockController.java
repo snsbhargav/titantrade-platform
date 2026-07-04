@@ -23,36 +23,40 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/v1/stocks")
 public class StockController {
-	
+
 	private final StockService stockService;
-	
+
 	public StockController(StockService stockService) {
 		this.stockService = stockService;
 	}
-	
+
 	@PostMapping
 	public ResponseEntity<ApiResponse> saveStock(@Valid @RequestBody CreateStockRequest stockDto) {
 		return new ResponseEntity<ApiResponse>(stockService.saveStock(stockDto), HttpStatus.CREATED);
 	}
-	
+
 	@GetMapping
-	public ResponseEntity<ApiResponse> getStocks(){
-		return new ResponseEntity<ApiResponse>(stockService.getAllStocks(), HttpStatus.OK);
+	public ResponseEntity<ApiResponse> getStocks(@RequestParam(name = "page", defaultValue = "0") int page,
+			@RequestParam(required = false, defaultValue = "10") int size,
+			@RequestParam(required = false) String search) {
+		return new ResponseEntity<ApiResponse>(stockService.getAllStocks(page, size, search), HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/{stockId}")
-	public ResponseEntity<ApiResponse> getStockById(@PathVariable UUID stockId){
+	public ResponseEntity<ApiResponse> getStockById(@PathVariable UUID stockId) {
 		return new ResponseEntity<ApiResponse>(stockService.getStockById(stockId), HttpStatus.OK);
 	}
-	
+
 	@GetMapping("/search")
-	public ResponseEntity<ApiResponse> getStockByTicker(@RequestParam String ticker){
+	public ResponseEntity<ApiResponse> getStockByTicker(@RequestParam String ticker) {
 		return new ResponseEntity<ApiResponse>(stockService.getStockByTicker(ticker), HttpStatus.OK);
 	}
-	
+
 	@PutMapping("/{stockId}/price")
-	public ResponseEntity<ApiResponse> updateStockPrice(@PathVariable(name = "stockId") UUID stockId, @Valid @RequestBody UpdateStockPriceRequest priceRequest){
-		return new ResponseEntity<ApiResponse>(stockService.updateStockPrice(stockId, priceRequest.getPrice()), HttpStatus.OK);
+	public ResponseEntity<ApiResponse> updateStockPrice(@PathVariable(name = "stockId") UUID stockId,
+			@Valid @RequestBody UpdateStockPriceRequest priceRequest) {
+		return new ResponseEntity<ApiResponse>(stockService.updateStockPrice(stockId, priceRequest.getPrice()),
+				HttpStatus.OK);
 	}
 
 }
