@@ -1,12 +1,7 @@
 package com.bhargav.titantrade.wallet.service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.bhargav.titantrade.common.exception.InsufficientFundsException;

@@ -6,7 +6,7 @@ import com.bhargav.titantrade.stock.entity.Stock;
 
 public class StockSpecification {
 
-	public StockSpecification() {
+	private StockSpecification() {
 	}
 
 	public static Specification<Stock> isActive() {

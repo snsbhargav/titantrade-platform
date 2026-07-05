@@ -2,7 +2,6 @@ package com.bhargav.titantrade.trade.service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -60,7 +59,7 @@ public class TradeService {
 		this.walletService = walletService;
 	}
 
-	public void recordStockTransaction(User user, Stock stock, BigDecimal pricePerShare, BigDecimal quantity,
+	private void recordStockTransaction(User user, Stock stock, BigDecimal pricePerShare, BigDecimal quantity,
 			BigDecimal totalAmount, TradeStatus tradeStatus, TradeType tradeType) {
 		StockTransaction stockTransaction = new StockTransaction();
 		stockTransaction.setUser(user);
@@ -70,7 +69,6 @@ public class TradeService {
 		stockTransaction.setTotalAmount(totalAmount);
 		stockTransaction.setTradeStatus(tradeStatus);
 		stockTransaction.setTradeType(tradeType);
-//		stockTransaction.setExecutedAt(executedAt);
 		stockTransactionRepository.save(stockTransaction);
 	}
 
@@ -79,7 +77,7 @@ public class TradeService {
 		List<StockTransactionResponse> response = new ArrayList<>();
 		Page<StockTransaction> tradeHistory;
 		if (size > 100) size = 100;
-		if(size<0) size = 10;
+		if(size<=0) size = 10;
 		if(page<0) page=0;
 		Pageable pageable = PageRequest.of(page, size, Sort.by("executedAt").descending());
 		if (stockId == null && tradeType == null) {
@@ -133,7 +131,6 @@ public class TradeService {
 
 			portfolioHolding.setAverageBuyPrice(averageBuyPrice);
 			portfolioHolding.setQuantity(portfolioHolding.getQuantity().add(buyStockRequest.getQuantity()));
-//			portfolioHolding.setUpdatedOn(now);
 		}
 		portfolioHoldingRepository.save(portfolioHolding);
 
@@ -152,7 +149,6 @@ public class TradeService {
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository
 				.findByUserIdAndStockId(user.getId(), stock.getId())
 				.orElseThrow(() -> new PortfolioHoldingNotFoundException("Portfolio not found"));
-//		LocalDateTime now = LocalDateTime.now();
 		BigDecimal sellQuantity = sellStockRequest.getQuantity();
 		BigDecimal executionPrice = stock.getLastKnownPrice();
 
@@ -161,7 +157,6 @@ public class TradeService {
 			throw new InsufficientHoldingQuantityException("Insufficient holdings");
 		}
 		portfolioHolding.setQuantity(portfolioHolding.getQuantity().subtract(sellQuantity));
-//		portfolioHolding.setUpdatedOn(now);
 		portfolioHoldingRepository.save(portfolioHolding);
 
 		// update wallet

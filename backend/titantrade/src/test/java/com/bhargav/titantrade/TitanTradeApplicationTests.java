@@ -1,4 +1,4 @@
-package com.bhargav.TitanTrade;
+package com.bhargav.titantrade;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

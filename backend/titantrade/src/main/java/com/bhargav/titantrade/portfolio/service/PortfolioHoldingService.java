@@ -42,11 +42,12 @@ public class PortfolioHoldingService {
 			totalPortfolioValue = totalPortfolioValue.add(response.getMarketValue());
 			totalInvestedValue = totalInvestedValue.add(response.getInvestedValue());
 			totalUnrealizedProfitLoss = totalUnrealizedProfitLoss.add(response.getUnrealizedProfitLoss());
-			totalUnrealizedProfitLossPercentage = totalUnrealizedProfitLossPercentage
-					.add(response.getUnrealizedProfitLossPercentage());
+			totalUnrealizedProfitLossPercentage = (totalUnrealizedProfitLoss.divide(totalInvestedValue))
+					.multiply(BigDecimal.valueOf(100));
 		}
 		PortfolioSummaryResponse portfolioSummaryResponse = new PortfolioSummaryResponse(holdingsDto,
-				totalPortfolioValue, totalInvestedValue, totalUnrealizedProfitLoss, totalUnrealizedProfitLossPercentage);
+				totalPortfolioValue, totalInvestedValue, totalUnrealizedProfitLoss,
+				totalUnrealizedProfitLossPercentage);
 		return new ApiResponse(true, "Portfolio retrieved successfully", portfolioSummaryResponse);
 	}
 

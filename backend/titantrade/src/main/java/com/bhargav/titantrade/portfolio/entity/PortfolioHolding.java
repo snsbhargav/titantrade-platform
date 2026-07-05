@@ -58,7 +58,7 @@ public class PortfolioHolding {
 	}
 
 	@PreUpdate
-	protected void OnUpdate() {
+	protected void onUpdate() {
 		this.updatedOn = LocalDateTime.now();
 	}
 
