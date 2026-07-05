@@ -1,6 +1,7 @@
 package com.bhargav.titantrade.trade.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
@@ -17,6 +18,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.bhargav.titantrade.common.exception.InactiveStockException;
+import com.bhargav.titantrade.common.exception.InsufficientFundsException;
+import com.bhargav.titantrade.common.exception.StockNotFoundException;
 import com.bhargav.titantrade.common.response.ApiResponse;
 import com.bhargav.titantrade.common.security.CurrentUserService;
 import com.bhargav.titantrade.portfolio.entity.PortfolioHolding;
@@ -30,6 +33,7 @@ import com.bhargav.titantrade.trade.enums.TradeStatus;
 import com.bhargav.titantrade.trade.enums.TradeType;
 import com.bhargav.titantrade.trade.repository.StockTransactionRepository;
 import com.bhargav.titantrade.user.entity.User;
+import com.bhargav.titantrade.wallet.entity.Wallet;
 import com.bhargav.titantrade.wallet.enums.CurrencyType;
 import com.bhargav.titantrade.wallet.service.WalletService;
 
@@ -186,6 +190,36 @@ class TradeServiceTest {
 
 	}
 	
+	@Test
+	void buyStock_shouldThrowStockNotFoundException_whenStockDoesNotExist() {
+		
+		BuyStockRequest request = new BuyStockRequest(stockId, BigDecimal.ONE);
+		
+		when(stockRepository.findById(stockId)).thenReturn(Optional.empty());
+		
+		assertThrows(StockNotFoundException.class, ()-> tradeService.buyStock(request));
+		verify(walletService, never()).withdrawAmount(any());
+		verify(portfolioHoldingRepository, never()).save(any());
+		verify(stockTransactionRepository, never()).save(any());
+	}
+	
+	@Test
+	void buyStock_shouldNotSaveHoldingOrTransaction_whenWalletWithdrawFails() {
+		Stock stock = createdTempStock(BigDecimal.valueOf(200));
+		User user = new User();
+		BuyStockRequest request = new BuyStockRequest(stockId, BigDecimal.valueOf(2));
+		
+		when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
+		when(currentUserService.getCurrentUser()).thenReturn(user);
+		doThrow(new InsufficientFundsException("Insufficient funds")).when(walletService).withdrawAmount(any());
+		
+		assertThrows(InsufficientFundsException.class, ()-> tradeService.buyStock(request));
+		
+		
+		verify(portfolioHoldingRepository, never()).save(any());
+		verify(stockTransactionRepository, never()).save(any());
+		
+	}
 	
 	
 	
