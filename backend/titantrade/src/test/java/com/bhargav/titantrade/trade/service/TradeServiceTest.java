@@ -1,7 +1,6 @@
 package com.bhargav.titantrade.trade.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
@@ -45,7 +44,6 @@ import com.bhargav.titantrade.trade.enums.TradeStatus;
 import com.bhargav.titantrade.trade.enums.TradeType;
 import com.bhargav.titantrade.trade.repository.StockTransactionRepository;
 import com.bhargav.titantrade.user.entity.User;
-import com.bhargav.titantrade.wallet.entity.Wallet;
 import com.bhargav.titantrade.wallet.enums.CurrencyType;
 import com.bhargav.titantrade.wallet.service.WalletService;
 
@@ -294,17 +292,16 @@ class TradeServiceTest {
 		SellStockRequest request = new SellStockRequest(stockId, BigDecimal.valueOf(200));
 		doThrow(new PortfolioHoldingNotFoundException("Portfolio not found")).when(portfolioHoldingRepository)
 				.findByUserIdAndStockId(userId, stockId);
-		
+
 		when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
 		when(currentUserService.getCurrentUser()).thenReturn(user);
-		assertThrows(PortfolioHoldingNotFoundException.class, ()-> tradeService.sellStock(request));
+		assertThrows(PortfolioHoldingNotFoundException.class, () -> tradeService.sellStock(request));
 
-		
 		verify(portfolioHoldingRepository, never()).save(any());
 		verify(walletService, never()).depositAmount(any());
 		verify(stockTransactionRepository, never()).save(any());
 	}
-	
+
 	@Test
 	void sellStock_shouldThrowInsufficientHoldingQuantityException_whenSellQuantityExceedsHoldingQuantity() {
 		Stock stock = createdTempStock(BigDecimal.valueOf(200));
@@ -315,28 +312,32 @@ class TradeServiceTest {
 		when(stockRepository.findById(stockId)).thenReturn(Optional.of(stock));
 		when(currentUserService.getCurrentUser()).thenReturn(user);
 		when(portfolioHoldingRepository.findByUserIdAndStockId(userId, stockId)).thenReturn(Optional.of(holding));
-		
-		assertThrows(InsufficientHoldingQuantityException.class, ()-> tradeService.sellStock(request));
+
+		assertThrows(InsufficientHoldingQuantityException.class, () -> tradeService.sellStock(request));
 		verify(portfolioHoldingRepository, never()).save(any());
 		verify(walletService, never()).depositAmount(any());
 		verify(stockTransactionRepository, never()).save(any());
 	}
-	
+
 	@Test
 	void getMyTradeHistory_shouldReturnPaginatedTradeHistory_whenNoFiltersProvided() {
 		User user = new User();
 		user.setId(userId);
-		Stock stock= createdTempStock(BigDecimal.valueOf(100));
-		
-		StockTransaction transaction1 = new StockTransaction(UUID.randomUUID(), user, stock, TradeType.BUY, BigDecimal.ONE, BigDecimal.valueOf(100), BigDecimal.valueOf(100), TradeStatus.SUCCESS, LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now());
-		StockTransaction transaction2 = new StockTransaction(UUID.randomUUID(), user, stock, TradeType.SELL, BigDecimal.TEN, BigDecimal.valueOf(100), BigDecimal.valueOf(100), TradeStatus.FAILED, LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now());
+		Stock stock = createdTempStock(BigDecimal.valueOf(100));
+
+		StockTransaction transaction1 = new StockTransaction(UUID.randomUUID(), user, stock, TradeType.BUY,
+				BigDecimal.ONE, BigDecimal.valueOf(100), BigDecimal.valueOf(100), TradeStatus.SUCCESS,
+				LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now());
+		StockTransaction transaction2 = new StockTransaction(UUID.randomUUID(), user, stock, TradeType.SELL,
+				BigDecimal.TEN, BigDecimal.valueOf(100), BigDecimal.valueOf(100), TradeStatus.FAILED,
+				LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now());
 		Pageable pageable = PageRequest.of(0, 10, Sort.by("executedAt").descending());
-		Page<StockTransaction> transactions = new PageImpl<>(List.of(transaction1,  transaction2), pageable, 2);
-		
+		Page<StockTransaction> transactions = new PageImpl<>(List.of(transaction1, transaction2), pageable, 2);
+
 		// 0,10
 		when(currentUserService.getCurrentUser()).thenReturn(user);
 		when(stockTransactionRepository.findByUserId(userId, pageable)).thenReturn(transactions);
-		
+
 		ApiResponse response = tradeService.getMyTradeHistory(null, null, 0, 10);
 		assertTrue(response.isSuccess());
 		assertEquals("Stock transactions retrieved successfully", response.getMessage());
@@ -347,5 +348,100 @@ class TradeServiceTest {
 		assertEquals(2, history.getTrades().size());
 	}
 
+	@Test
+	void getMyTradeHistory_shouldReturnTradesFilteredByTradeType_whenTradeTypeProvided() {
+		User user = new User();
+		user.setId(userId);
+		Stock stock = createdTempStock(BigDecimal.valueOf(100));
+		StockTransaction transaction1 = new StockTransaction(UUID.randomUUID(), user, stock, TradeType.BUY,
+				BigDecimal.ONE, BigDecimal.valueOf(100), BigDecimal.valueOf(100), TradeStatus.SUCCESS,
+				LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now());
+		StockTransaction transaction2 = new StockTransaction(UUID.randomUUID(), user, stock, TradeType.BUY,
+				BigDecimal.TEN, BigDecimal.valueOf(100), BigDecimal.valueOf(1000), TradeStatus.FAILED,
+				LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now());
+		Pageable pageable = PageRequest.of(0, 10, Sort.by("executedAt").descending());
+		Page<StockTransaction> transactions = new PageImpl<>(List.of(transaction1, transaction2), pageable, 2);
+
+		when(currentUserService.getCurrentUser()).thenReturn(user);
+		when(stockTransactionRepository.findByUserIdAndTradeType(userId, TradeType.BUY, pageable))
+				.thenReturn(transactions);
+
+		ApiResponse response = tradeService.getMyTradeHistory(null, TradeType.BUY, 0, 10);
+		assertTrue(response.isSuccess());
+		assertEquals("Stock transactions retrieved successfully", response.getMessage());
+		TradeHistoryResponse history = (TradeHistoryResponse) response.getData();
+		assertEquals(0, history.getPage());
+		assertEquals(10, history.getSize());
+		assertEquals(2, history.getTotalElements());
+		assertEquals(2, history.getTrades().size());
+
+	}
+
+	@Test
+	void getMyTradeHistory_shouldReturnTradesFilteredByStock_whenStockIdProvided() {
+		User user = new User();
+		user.setId(userId);
+		Stock stock = createdTempStock(BigDecimal.valueOf(100));
+		StockTransaction transaction1 = new StockTransaction(UUID.randomUUID(), user, stock, TradeType.BUY,
+				BigDecimal.ONE, BigDecimal.valueOf(100), BigDecimal.valueOf(100), TradeStatus.SUCCESS,
+				LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now());
+		StockTransaction transaction2 = new StockTransaction(UUID.randomUUID(), user, stock, TradeType.SELL,
+				BigDecimal.TEN, BigDecimal.valueOf(100), BigDecimal.valueOf(1000), TradeStatus.FAILED,
+				LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now());
+		Pageable pageable = PageRequest.of(0, 10, Sort.by("executedAt").descending());
+		Page<StockTransaction> transactions = new PageImpl<>(List.of(transaction1, transaction2), pageable, 2);
+
+		when(currentUserService.getCurrentUser()).thenReturn(user);
+		when(stockService.getStockById(stockId))
+				.thenReturn(new ApiResponse(true, "stock retrieved successfully", stock));
+		when(stockTransactionRepository.findByUserIdAndStockId(userId, stockId, pageable)).thenReturn(transactions);
+
+		ApiResponse response = tradeService.getMyTradeHistory(stockId, null, 0, 10);
+		assertTrue(response.isSuccess());
+		assertEquals("Stock transactions retrieved successfully", response.getMessage());
+		TradeHistoryResponse history = (TradeHistoryResponse) response.getData();
+		assertEquals(0, history.getPage());
+		assertEquals(10, history.getSize());
+		assertEquals(2, history.getTotalElements());
+		assertEquals(2, history.getTrades().size());
+		
+		verify(stockTransactionRepository, never()).findByUserId(any(), any());
+		verify(stockTransactionRepository, never()).findByUserIdAndTradeType(any(), any(), any());
+		verify(stockTransactionRepository, never()).findByUserIdAndStockIdAndTradeType(any(), any(), any(), any());
+	}
+	
+	@Test
+	void getMyTradeHistory_shouldReturnTradesFilteredByStockAndTradeType_whenBothFiltersProvided() {
+		User user = new User();
+		user.setId(userId);
+		Stock stock = createdTempStock(BigDecimal.valueOf(100));
+		StockTransaction transaction1 = new StockTransaction(UUID.randomUUID(), user, stock, TradeType.SELL,
+				BigDecimal.ONE, BigDecimal.valueOf(100), BigDecimal.valueOf(100), TradeStatus.SUCCESS,
+				LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now());
+		StockTransaction transaction2 = new StockTransaction(UUID.randomUUID(), user, stock, TradeType.SELL,
+				BigDecimal.TEN, BigDecimal.valueOf(100), BigDecimal.valueOf(1000), TradeStatus.FAILED,
+				LocalDateTime.now(), LocalDateTime.now(), LocalDateTime.now());
+		Pageable pageable = PageRequest.of(0, 10, Sort.by("executedAt").descending());
+		Page<StockTransaction> transactions = new PageImpl<>(List.of(transaction1, transaction2), pageable, 2);
+
+		when(currentUserService.getCurrentUser()).thenReturn(user);
+		when(stockService.getStockById(stockId))
+				.thenReturn(new ApiResponse(true, "stock retrieved successfully", stock));
+		when(stockTransactionRepository.findByUserIdAndStockIdAndTradeType(userId, stockId, TradeType.SELL, pageable)).thenReturn(transactions);
+
+		ApiResponse response = tradeService.getMyTradeHistory(stockId, TradeType.SELL, 0, 10);
+		assertTrue(response.isSuccess());
+		assertEquals("Stock transactions retrieved successfully", response.getMessage());
+		TradeHistoryResponse history = (TradeHistoryResponse) response.getData();
+		assertEquals(0, history.getPage());
+		assertEquals(10, history.getSize());
+		assertEquals(2, history.getTotalElements());
+		assertEquals(2, history.getTrades().size());
+		
+		verify(stockTransactionRepository, never()).findByUserId(any(), any());
+		verify(stockTransactionRepository, never()).findByUserIdAndTradeType(any(), any(), any());
+		verify(stockTransactionRepository, never()).findByUserIdAndStockId(any(), any(), any());
+		
+	}
 
 }
