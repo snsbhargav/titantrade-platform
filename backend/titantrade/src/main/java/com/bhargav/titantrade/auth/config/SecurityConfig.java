@@ -27,14 +27,13 @@ public class SecurityConfig {
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.csrf(csrf -> csrf.disable())
-				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/**")
-						.permitAll()
+				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/**").permitAll()
+						.requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 						.requestMatchers(HttpMethod.POST, "/api/v1/stocks").hasRole("ADMIN")
 						.requestMatchers(HttpMethod.PUT, "/api/v1/stocks/*/price").hasRole("ADMIN")
 
-                        .requestMatchers(HttpMethod.GET, "/api/v1/stocks/**").authenticated()
-						.requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-						.anyRequest().authenticated())
+						.requestMatchers(HttpMethod.GET, "/api/v1/stocks/**").authenticated()
+						.requestMatchers("/api/v1/admin/**").hasRole("ADMIN").anyRequest().authenticated())
 				.addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();
