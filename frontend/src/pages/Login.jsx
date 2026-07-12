@@ -1,5 +1,6 @@
 import { useState } from "react";
 import api from "../api/axiosConfig";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
 function Login(){
     const [formData, setFormData] = useState(
@@ -18,6 +19,7 @@ function Login(){
             [name] : value
         });
     };
+    const navigate = useNavigate();
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -28,6 +30,7 @@ function Login(){
             localStorage.setItem("token", token);
             console.log(token);
             setMessage("Login Successful");
+            navigate("/dashboard");
         } catch(error){
             setMessage(error.response?.data?.message || "Login failed");
         }
@@ -50,6 +53,7 @@ function Login(){
                 <button type="submit">Login</button>
 
             </form>
+            <p><Link to="/register">Don't have an account? Create One</Link></p>
             {message &&  <p>{message}</p>}
         </div>
     );

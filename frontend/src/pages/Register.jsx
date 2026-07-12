@@ -1,5 +1,6 @@
 import { useState } from "react";
 import api from "../api/axiosConfig";
+import { Link, useNavigate } from "react-router-dom";
 
 function Register(){
 
@@ -20,14 +21,14 @@ function Register(){
             [name] : value
         });
     };
-
+    const navigate = useNavigate();
     const handleSubmit = async (event) => {
         event.preventDefault();
 
         try{
             const response = await api.post("/auth/register", formData);
             setMessage(response?.data?.message);
-            console.log(response?.data?.data);
+            navigate("/login");
         } catch(error){
             setMessage(error.response?.data?.message || "Registration failed");
         }
@@ -35,6 +36,7 @@ function Register(){
 
     return (
         <div>
+            <h1>Register</h1>
             <form onSubmit={handleSubmit}>
                 <div>
                     <label htmlFor="firstName" >FirstName</label>
@@ -63,7 +65,7 @@ function Register(){
                 </div>
                 <button type="submit">Register</button>
             </form>
-
+            <p><Link to="/login">Already had an account? Log in</Link></p>
             {message && <p>{message}</p>}
         </div>
     );

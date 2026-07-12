@@ -10,7 +10,7 @@ function Stocks(){
 
             try{
                 const response = await api.get("/stocks");
-                setStockList(response.data?.data?.stocks);
+                setStockList(response.data?.data?.stocks || []);
                 setMessage(response.data?.message || "Stock Retrieved Successful");
         
             } catch(error){
