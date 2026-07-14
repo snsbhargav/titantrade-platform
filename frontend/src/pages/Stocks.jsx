@@ -5,6 +5,7 @@ function Stocks(){
 
     const [message, setMessage] = useState("");
     const [stockList, setStockList] = useState([]);
+    const [quantities, setQuantities] = useState({});
     useEffect(() => {
         const fetchStock = async() => {
 
@@ -23,6 +24,33 @@ function Stocks(){
         
         }, []);
 
+    const handleBuyChange = (stockId, value) => {
+        setQuantities({
+            ...quantities,
+            [stockId] : value
+        });
+        
+    }
+
+    const handleBuyAction = async (stockId) => {
+        const quantity = quantities[stockId];
+        if(!quantity && quantity <= 0){
+            setMessage("Enter a valid quantity value")
+        }
+
+        const  buyStockRequest = {"stockId" : stockId, "quantity" : quantities[stockId]};
+        try{
+            const response = await api.post("/trades/buy", buyStockRequest);
+            setMessage(response?.data?.message || "Stock Bought successful")
+            setQuantities({
+                ...quantities,
+                [stockId] : ""
+            });
+        } catch(error){
+            setMessage(response?.data?.message || "Trade action failed.")
+        }
+    }
+
     return (
         <div>
             <h1>Stocks</h1>
@@ -37,7 +65,8 @@ function Stocks(){
                         <th>Currency</th>
                         <th>Sector</th>
                         <th>Asset Type</th>
-
+                        <th>Quantity</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -52,6 +81,8 @@ function Stocks(){
                                     <td>{stock.currency}</td>
                                     <td>{stock.sector}</td>
                                     <td>{stock.assetType}</td>
+                                    <td><input type="number" name="quantity" min="0.000001" step="0.000001" id="quantity" placeholder="quantity" value={quantities[stock.id] ||  ""} onChange={(event)=> {handleBuyChange(stock.id, event.target.value)}} /></td>
+                                    <td><button type="button" onClick={()=> handleBuyAction(stock.id)}>BUY</button></td>
 
                                 </tr>
                     ))
