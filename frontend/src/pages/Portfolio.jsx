@@ -6,23 +6,54 @@ function Portfolio(){
     const [message, setMessage] = useState("");
     const [portfolio, setPortfolio] = useState(null);
     const [holdings, setHoldings] = useState([]);
+    const [quantities, setQuantities] = useState({});
+
+    const getPortfolio = async() => {
+        try{
+            const response = await api.get("/portfolio");
+            setPortfolio(response?.data?.data || null);
+            setHoldings(response?.data?.data?.holdings || []);
+            
+            setMessage(response?.data?.message || "Portfolio loaded successfully");
+
+
+        } catch(error){
+            setMessage(error?.response?.data?.message ?? "Failed to load portfolio");
+        }
+    }
 
     useEffect(() => {
-        const getPortfolio = async() => {
-            try{
-                const response = await api.get("/portfolio");
-                setPortfolio(response?.data?.data || null);
-                setHoldings(response?.data?.data?.holdings || []);
-                
-                setMessage(response?.data?.message || "Portfolio loaded successfully");
-
-
-            } catch(error){
-                setMessage(error?.response?.data?.message ?? "Failed to load portfolio");
-            }
-        }
+        
         getPortfolio();
     }, []); 
+
+    const handleQuantityChange = (stockId, quantity) =>{
+        setQuantities({
+            ...quantities,
+            [stockId] : Number(quantity)
+        });
+
+    }
+
+    const handleSellRequest = async (stockId) => {
+        const quantity = quantities[stockId];
+        if(!quantity || quantity <=0)
+            setMessage("Please enter a valid quantity");
+        else{
+            const sellRequest = {"stockId" : stockId, "quantity" : quantity};
+            try{
+                const response = await api.post("/trades/sell", sellRequest);
+                setMessage(response?.data?.message || "Stock Sold Successfulll");
+                setQuantities({
+                    ...quantities,
+                    [stockId] : ""
+                });
+                await getPortfolio();
+            } catch(error){
+                setMessage(error?.response?.data?.message || "Unable to sell the stock");
+            }
+        }
+    }
 
     return (
         <div>
@@ -64,12 +95,14 @@ function Portfolio(){
                             <td>Invested Value</td>
                             <td>Unrealised Profit Loss</td>
                             <td>Unrealised Profit Loss Percentage</td>
+                            <td>Quantity</td>
+                            <td>Actions</td>
                         </tr>
                     </thead>
                     <tbody>
                         {
                             holdings.map((holding) => (
-                                <tr id={holding.holdingId}>
+                                <tr key={holding.stockId}>
                                     <td>{holding.ticker}</td>
                                     <td>{holding.companyName}</td>
                                     <td>{holding.quantity}</td>
@@ -79,6 +112,8 @@ function Portfolio(){
                                     <td>{holding.investedValue}</td>
                                     <td>{holding.unrealizedProfitLoss}</td>
                                     <td>{holding.unrealizedProfitLossPercentage}</td>
+                                    <td><input type="number" name="quantity" placeholder="quantity" min="0.000001" step="0.000001" value={quantities[holding.stockId] || ""} onChange={(event)=> handleQuantityChange(holding.stockId, event.target.value)}/></td>
+                                    <td><button onClick={() => handleSellRequest(holding.stockId)}>SELL</button></td>
                                 </tr>
                             ))
                         }
