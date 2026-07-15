@@ -6,23 +6,31 @@ function Stocks(){
     const [message, setMessage] = useState("");
     const [stockList, setStockList] = useState([]);
     const [quantities, setQuantities] = useState({});
-    useEffect(() => {
-        const fetchStock = async() => {
-
-            try{
-                const response = await api.get("/stocks");
-                setStockList(response.data?.data?.stocks || []);
-                setMessage(response.data?.message || "Stock Retrieved Successful");
-        
-            } catch(error){
-                setMessage(error?.response?.data?.message || "Stocks Retrieval Failed")
+    const [page, setPage] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+    const [last, setLast] = useState(false);
+    const [search, setSearch] = useState("");
     
-            }
-        };
+    const fetchStock = async() => {
+
+        try{
+            const response = await api.get(`/stocks?page=${page}&size=1`);
+            setStockList(response.data?.data?.stocks || []);
+            setTotalPages(response?.data?.data?.totalPages || 1)
+            setLast(response?.data?.data?.last)
+            setMessage(response.data?.message || "Stock Retrieved Successful");
+    
+        } catch(error){
+            setMessage(error?.response?.data?.message || "Stocks Retrieval Failed")
+
+        }
+    };
+    
+    useEffect(() => {
 
         fetchStock();
         
-        }, []);
+        }, [page]);
 
     const handleBuyChange = (stockId, value) => {
         setQuantities({
@@ -48,6 +56,18 @@ function Stocks(){
             });
         } catch(error){
             setMessage(response?.data?.message || "Trade action failed.")
+        }
+    }
+
+    const handlePrev = () => {
+        if(page>0) {
+            setPage(page-1);
+        }
+    }
+
+    const handleNext = () => {
+        if(!last){
+            setPage(page+1);
         }
     }
 
@@ -90,7 +110,8 @@ function Stocks(){
                 </tbody>
 
             </table>
-
+            <button name="prev" onClick={handlePrev}>Prev</button>
+            <button name="next" onClick={handleNext}>Next</button>
             {message && <p>{message}</p>}
         </div>
     );
