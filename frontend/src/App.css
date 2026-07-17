@@ -1,0 +1,97 @@
+
+body {
+    background-color: #F3F4F6;
+    color: #1F2937;
+    letter-spacing: 0.5px;
+}
+.body-content{
+    margin: 10px;
+}
+/* NavBar */
+nav {
+    display: flex;
+    background-color: #1E40AF;
+    align-items: center;
+}
+
+nav a{
+    color: #F3F4F6;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 10px;
+    margin : 10px;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+nav button{
+    margin-left: auto;
+    background-color: #DC2626;
+}
+nav button:hover{
+    background-color: #B91C1C;
+}
+
+/* Buttons */
+button {
+    background-color: #1E40AF;
+    color: white;
+    padding: 10px 14px;
+    margin : 5px;
+    border-radius: 5px;
+    border: none;
+}
+
+button:hover{
+    background-color: #3B82F6;
+    cursor: pointer;
+}
+
+button:disabled{
+    background-color: #9CA3AF;
+    cursor : not-allowed;
+}
+
+table {
+    min-width: 100%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-collapse: collapse;
+    border: 2px solid #D1D5DB;
+}
+
+th{
+    font-weight: 700;
+    background-color: aliceblue;
+}
+th, td{
+    padding : 5px;
+    border: 2px solid #D1D5DB;
+}
+
+input, select{
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid #CBD5E1;
+    border-radius: 5px;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stock-search-box{
+    display: flex;
+    align-items: center;
+}
+
+.pagination, .pagination-tail{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+

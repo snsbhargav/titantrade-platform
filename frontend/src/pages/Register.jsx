@@ -35,7 +35,7 @@ function Register(){
     };
 
     return (
-        <div>
+        <div className="body-content">
             <h1>Register</h1>
             <form onSubmit={handleSubmit}>
                 <div>

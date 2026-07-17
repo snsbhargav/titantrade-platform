@@ -78,7 +78,7 @@ function Wallet(){
     };
 
     return (
-        <div>
+        <div className="body-content">
             <h1>Wallet will appear here!!</h1>
             <p>Wallet Balance : {balance} {currency}</p>
             <div className="deposit">

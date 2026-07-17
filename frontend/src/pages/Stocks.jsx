@@ -74,15 +74,19 @@ function Stocks(){
 
 
     return (
-        <div>
-            <h1>Stocks</h1>
-            <input type="text" placeholder="Search" value={search} onChange={(event) => setSearch(event.target.value)} />
-            <button onClick={() => {
-                if(page===0){
-                    fetchStock();
-                }else
-                    setPage(0);
-                }}>Search</button>
+        <div className="body-content">
+            <div className="page-header">
+                <h1>Stocks</h1>
+                <div className="stock-search-box">
+                    <input type="text" placeholder="Search" value={search} onChange={(event) => setSearch(event.target.value)} />
+                    <button onClick={() => {
+                        if(page===0){
+                            fetchStock();
+                        }else
+                            setPage(0);
+                        }}>Search</button>
+                </div>
+            </div>
             {stockList.length===0 && <p>"No stocks found.</p>}
             {stockList.length>0 && (
             <>
@@ -122,9 +126,13 @@ function Stocks(){
                     </tbody>
 
                 </table>
-                <button name="prev" onClick={handlePrev} disabled={page===0}>Prev</button>
-                <button name="next" onClick={handleNext} disabled={last}>Next</button>
-                <p>Page {page+1} of {totalPages}</p>
+                <div className="pagination">
+                    <button name="prev" onClick={handlePrev} disabled={page===0}>Prev</button>
+                    <button name="next" onClick={handleNext} disabled={last}>Next</button>
+                </div>
+                <div className="pagination-tail">
+                    <p >Page {page+1} of {totalPages}</p>
+                </div>
             </>
             )}
             {message && <p>{message}</p>}

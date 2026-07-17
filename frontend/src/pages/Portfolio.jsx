@@ -56,7 +56,7 @@ function Portfolio(){
     }
 
     return (
-        <div>
+        <div className="body-content">
             {!portfolio && <p>Portfolio Loading ....</p>}
             {portfolio && (
             <>
@@ -64,19 +64,19 @@ function Portfolio(){
                 <table border="1">
                     <tbody>
                         <tr>
-                            <td>totalPortfolioValue</td>
+                            <th>totalPortfolioValue</th>
                             <td>{portfolio.totalPortfolioValue}</td>
                         </tr>
                         <tr>
-                            <td>totalInvestedValue</td>
+                            <th>totalInvestedValue</th>
                             <td>{portfolio.totalInvestedValue}</td>
                         </tr>
                         <tr>
-                            <td>totalUnrealizedProfitLoss</td>
-                            <td>{portfolio.totalUnrealizedProfitLoss}</td>
+                            <th>totalUnrealizedProfitLoss</th>
+                            <td>{portfolio.totalUnrealizedProfitLohs}</td>
                         </tr>
                         <tr>
-                            <td>totalUnrealizedProfitLossPercentage</td>
+                            <th>totalUnrealizedProfitLossPercentage</th>
                             <td>{portfolio.totalUnrealizedProfitLossPercentage}</td>
                         </tr>
                     </tbody>
@@ -86,17 +86,17 @@ function Portfolio(){
                 <table className="holdings" border="1">
                     <thead>
                         <tr>
-                            <td>Ticker</td>
-                            <td>Company Name</td>
-                            <td>Quantity</td>
-                            <td>Average Buy Price</td>
-                            <td>Current Price</td>
-                            <td>Market Value</td>
-                            <td>Invested Value</td>
-                            <td>Unrealised Profit Loss</td>
-                            <td>Unrealised Profit Loss Percentage</td>
-                            <td>Quantity</td>
-                            <td>Actions</td>
+                            <th>Ticker</th>
+                            <th>Company Name</th> 
+                            <th>Quantity</th>
+                            <th>Average Buy Price</th>
+                            <th>Current Price</th>
+                            <th>Market Value</th>
+                            <th>Invested Value</th>
+                            <th>Unrealised Profit Loss</th>
+                            <th>Unrealised Profit Loss Percentage</th>
+                            <th>Quantity</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>

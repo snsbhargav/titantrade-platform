@@ -34,7 +34,7 @@ function TradeHistory(){
         setPage(0);
     }
     return (
-        <div>
+        <div className="body-content">
             {!tradesList && <p>Loading Trade History...</p>}
             {tradesList.length === 0 && <p>No trade history found</p>}
             {tradesList && tradesList.length != 0 &&
@@ -79,9 +79,13 @@ function TradeHistory(){
                         }
                     </tbody>
                 </table>
-                <button name="prev" disabled={page===0}  onClick={() => {if(page!=0) setPage(page-1)}}>Prev</button>
-                <button name="next" disabled={last} onClick={()=>{if(!last) setPage(page+1)}}>Next</button>
-                <p>page {page+1} of {totalPages}</p>
+                <div className="pagination">
+                    <button name="prev" disabled={page===0}  onClick={() => {if(page!=0) setPage(page-1)}}>Prev</button>
+                    <button name="next" disabled={last} onClick={()=>{if(!last) setPage(page+1)}}>Next</button>
+                </div>
+                <div className="pagination-tail">
+                    <p>page {page+1} of {totalPages}</p>
+                </div>
             </>
             }
             {message && <p>{message}</p>}

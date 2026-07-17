@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 function Dashboard(){
 
     return (
-        <div>
+        <div className="body-content">
             <h1>Dashboard</h1>
             <h2>Welcome to Titan Trade</h2>
             <div>
