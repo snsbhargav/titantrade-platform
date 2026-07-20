@@ -9,6 +9,7 @@ function TradeHistory(){
     const [totalPages, setTotalPages] = useState(0);
     const [last, setLast] = useState(false);
     const [tradeType, setTradeType] = useState("");
+    const [loading, setLoading] = useState(true);
 
     const getTrades = async() => {
         try{
@@ -19,7 +20,7 @@ function TradeHistory(){
             setTradesList(response?.data?.data?.trades || []);
             setTotalPages(response?.data?.data?.totalPages);
             setLast(response?.data?.data?.last);
-            setMessage(response?.data?.message || "Trades History retrieved successful");
+            setMessage("");
         } catch(error){
             setMessage(error?.response?.data?.message || "Trade history retrieval failed");
         }
@@ -35,16 +36,19 @@ function TradeHistory(){
     }
     return (
         <div className="body-content">
-            {!tradesList && <p>Loading Trade History...</p>}
-            {tradesList.length === 0 && <p>No trade history found</p>}
-            {tradesList && tradesList.length != 0 &&
-            <>
+            <div>
                 <h1>Trade History</h1>
                 <select name="tradetype" value={tradeType} id="tradetype" onChange={handleTradeType}>
                     <option value="">ALL</option>
                     <option value="BUY">BUY</option>
                     <option value="SELL">SELL</option>
                 </select>
+            </div>
+            {!tradesList && <p>Loading Trade History...</p>}
+            {tradesList.length === 0 && <p>No trade history found</p>}
+            {tradesList && tradesList.length !== 0 &&
+            <>
+                
                 <table border="1">
                     <thead>
                         <tr>

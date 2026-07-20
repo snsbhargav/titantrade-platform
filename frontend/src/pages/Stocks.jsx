@@ -14,12 +14,11 @@ function Stocks(){
     const fetchStock = async() => {
 
         try{
-            const response = await api.get(`/stocks?page=${page}&size=1&search=${encodeURIComponent(search)}`);
+            const response = await api.get(`/stocks?page=${page}&size=10&search=${encodeURIComponent(search)}`);
             setStockList(response.data?.data?.stocks || []);
             setTotalPages(response?.data?.data?.totalPages || 1)
-            setLast(response?.data?.data?.last)
-            setMessage(response.data?.message || "Stock Retrieved Successful");
-    
+            setLast(response?.data?.data?.last ?? true)
+            setMessage("");
         } catch(error){
             setMessage(error?.response?.data?.message || "Stocks Retrieval Failed")
 
@@ -42,7 +41,7 @@ function Stocks(){
 
     const handleBuyAction = async (stockId) => {
         const quantity = quantities[stockId];
-        if(quantity && Number(quantity) <= 0){
+        if(!quantity || Number(quantity) <= 0){
             setMessage("Enter a valid quantity value")
             return;
         }
@@ -50,13 +49,13 @@ function Stocks(){
         const  buyStockRequest = {stockId : stockId, quantity : Number(quantities[stockId])};
         try{
             const response = await api.post("/trades/buy", buyStockRequest);
-            setMessage(response?.data?.message || "Stock Bought successful")
+            setMessage(response?.data?.message || "Stock bought successfully")
             setQuantities({
                 ...quantities,
                 [stockId] : ""
             });
         } catch(error){
-            setMessage(response?.data?.message || "Trade action failed.")
+            setMessage(error?.response?.data?.message || "Trade action failed.")
         }
     }
 
@@ -87,7 +86,7 @@ function Stocks(){
                         }}>Search</button>
                 </div>
             </div>
-            {stockList.length===0 && <p>"No stocks found.</p>}
+            {stockList.length===0 && <p>No stocks found.</p>}
             {stockList.length>0 && (
             <>
                 <table border="1">
@@ -95,7 +94,7 @@ function Stocks(){
                         <tr>
                             <th>Ticker</th>
                             <th>Company Name</th>
-                            <th>Last Know Price</th>
+                            <th>Last Known Price</th>
                             <th>Last Price Updated At</th>
                             <th>Exchange</th>
                             <th>Currency</th>
@@ -117,7 +116,7 @@ function Stocks(){
                                         <td>{stock.currency}</td>
                                         <td>{stock.sector}</td>
                                         <td>{stock.assetType}</td>
-                                        <td><input type="number" name="quantity" min="0.000001" step="0.000001" id="quantity" placeholder="quantity" value={quantities[stock.id] ||  ""} onChange={(event)=> {handleBuyChange(stock.id, event.target.value)}} /></td>
+                                        <td><input type="number" name="quantity" min="0.000001" step="0.000001" placeholder="quantity" value={quantities[stock.id] ||  ""} onChange={(event)=> {handleBuyChange(stock.id, event.target.value)}} /></td>
                                         <td><button type="button" onClick={()=> handleBuyAction(stock.id)}>BUY</button></td>
 
                                     </tr>

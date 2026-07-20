@@ -39,7 +39,7 @@ function Wallet(){
                 const response = await api.get("/wallet/walletBalance");
                 setBalance(response?.data?.data?.balance ?? 0);
                 setCurrency(response?.data?.data?.currency ?? "");
-                setMessage(response?.data?.message || "");
+                setMessage("");
 
             } catch(error){
                 setMessage(error?.response?.data?.message || "Failed to load wallet page.");
@@ -53,9 +53,15 @@ function Wallet(){
     const handleDeposit = async (event) => {
         event.preventDefault();
         try{
-            const requestBody = {amount: Number(depositAmount.amount)};
+            const amount = depositAmount.amount;
+            if(!amount || amount<=0){
+                setMessage("Enter valid amount");
+                return;
+            }
+            const requestBody = {amount: Number(amount)};
             const response = await api.post("/wallet/deposit", requestBody);
             setBalance(response?.data?.data?.balance ?? balance)
+            setDepositAmount({amount:""});
             setMessage(response?.data?.message || "");
 
         } catch(error){
@@ -67,10 +73,16 @@ function Wallet(){
     const handleWithdraw = async (event) => {
         event.preventDefault();
         try{
-            const requestBody = {amount: Number(withdrawAmount.amount)};
+             const amount = withdrawAmount.amount;
+            if(!amount || amount<=0){
+                setMessage("Enter valid amount");
+                return;
+            }
+            const requestBody = {amount: Number(amount)};
             const response = await api.post("/wallet/withdraw", requestBody);
             setBalance(response?.data?.data?.balance ?? balance)
             setMessage(response?.data?.message || "");
+            setWithdrawAmount({amount : ""});
         } catch(error){
             setMessage(error?.response?.data?.message || "Withdraw failed");
         }
@@ -79,7 +91,7 @@ function Wallet(){
 
     return (
         <div className="body-content">
-            <h1>Wallet will appear here!!</h1>
+            <h1>Wallet</h1>
             <p>Wallet Balance : {balance} {currency}</p>
             <div className="deposit">
                 <form onSubmit={handleDeposit}>

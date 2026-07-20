@@ -14,7 +14,7 @@ function Portfolio(){
             setPortfolio(response?.data?.data || null);
             setHoldings(response?.data?.data?.holdings || []);
             
-            setMessage(response?.data?.message || "Portfolio loaded successfully");
+            setMessage("");
 
 
         } catch(error){
@@ -30,20 +30,22 @@ function Portfolio(){
     const handleQuantityChange = (stockId, quantity) =>{
         setQuantities({
             ...quantities,
-            [stockId] : Number(quantity)
+            [stockId] : quantity
         });
 
     }
 
     const handleSellRequest = async (stockId) => {
         const quantity = quantities[stockId];
-        if(!quantity || quantity <=0)
+        if(!quantity || Number(quantity) <=0){
             setMessage("Please enter a valid quantity");
+            return;
+        }
         else{
-            const sellRequest = {"stockId" : stockId, "quantity" : quantity};
+            const sellRequest = {"stockId" : stockId, "quantity" : Number(quantity)};
             try{
                 const response = await api.post("/trades/sell", sellRequest);
-                setMessage(response?.data?.message || "Stock Sold Successfulll");
+                setMessage(response?.data?.message || "Stock sold successfully");
                 setQuantities({
                     ...quantities,
                     [stockId] : ""
@@ -73,7 +75,7 @@ function Portfolio(){
                         </tr>
                         <tr>
                             <th>totalUnrealizedProfitLoss</th>
-                            <td>{portfolio.totalUnrealizedProfitLohs}</td>
+                            <td>{portfolio.totalUnrealizedProfitLoss}</td>
                         </tr>
                         <tr>
                             <th>totalUnrealizedProfitLossPercentage</th>
@@ -82,44 +84,46 @@ function Portfolio(){
                     </tbody>
                 </table>
                 <h2>Portfolio Holdings</h2>
+                {holdings.length === 0 && <p>No holdings found.</p>}
+                {holdings.length >0 &&
+                    <table className="holdings" border="1">
+                        <thead>
+                            <tr>
+                                <th>Ticker</th>
+                                <th>Company Name</th> 
+                                <th>Quantity</th>
+                                <th>Average Buy Price</th>
+                                <th>Current Price</th>
+                                <th>Market Value</th>
+                                <th>Invested Value</th>
+                                <th>Unrealised Profit Loss</th>
+                                <th>Unrealised Profit Loss Percentage</th>
+                                <th>Quantity</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {
+                                holdings.map((holding) => (
+                                    <tr key={holding.stockId}>
+                                        <td>{holding.ticker}</td>
+                                        <td>{holding.companyName}</td>
+                                        <td>{holding.quantity}</td>
+                                        <td>{holding.averageBuyPrice}</td>
+                                        <td>{holding.currentPrice}</td>
+                                        <td>{holding.marketValue}</td>
+                                        <td>{holding.investedValue}</td>
+                                        <td>{holding.unrealizedProfitLoss}</td>
+                                        <td>{holding.unrealizedProfitLossPercentage}</td>
+                                        <td><input type="number" name="quantity" placeholder="quantity" min="0.000001" step="0.000001" value={quantities[holding.stockId] || ""} onChange={(event)=> handleQuantityChange(holding.stockId, event.target.value)}/></td>
+                                        <td><button onClick={() => handleSellRequest(holding.stockId)}>SELL</button></td>
+                                    </tr>
+                                ))
+                            }
+                        </tbody>
 
-                <table className="holdings" border="1">
-                    <thead>
-                        <tr>
-                            <th>Ticker</th>
-                            <th>Company Name</th> 
-                            <th>Quantity</th>
-                            <th>Average Buy Price</th>
-                            <th>Current Price</th>
-                            <th>Market Value</th>
-                            <th>Invested Value</th>
-                            <th>Unrealised Profit Loss</th>
-                            <th>Unrealised Profit Loss Percentage</th>
-                            <th>Quantity</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {
-                            holdings.map((holding) => (
-                                <tr key={holding.stockId}>
-                                    <td>{holding.ticker}</td>
-                                    <td>{holding.companyName}</td>
-                                    <td>{holding.quantity}</td>
-                                    <td>{holding.averageBuyPrice}</td>
-                                    <td>{holding.currentPrice}</td>
-                                    <td>{holding.marketValue}</td>
-                                    <td>{holding.investedValue}</td>
-                                    <td>{holding.unrealizedProfitLoss}</td>
-                                    <td>{holding.unrealizedProfitLossPercentage}</td>
-                                    <td><input type="number" name="quantity" placeholder="quantity" min="0.000001" step="0.000001" value={quantities[holding.stockId] || ""} onChange={(event)=> handleQuantityChange(holding.stockId, event.target.value)}/></td>
-                                    <td><button onClick={() => handleSellRequest(holding.stockId)}>SELL</button></td>
-                                </tr>
-                            ))
-                        }
-                    </tbody>
-
-                </table>
+                    </table>
+                }
                 {message && <p>{message}</p>}
             </>
             )}

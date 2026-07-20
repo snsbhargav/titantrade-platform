@@ -26,6 +26,16 @@ function Register(){
         event.preventDefault();
 
         try{
+            if (
+                !formData.firstName ||
+                !formData.lastName ||
+                !formData.email ||
+                !formData.password ||
+                !formData.gender
+            ) {
+                setMessage("Please fill all required fields");
+                return;
+            }
             const response = await api.post("/auth/register", formData);
             setMessage(response?.data?.message);
             navigate("/login");
@@ -40,7 +50,7 @@ function Register(){
             <form onSubmit={handleSubmit}>
                 <div>
                     <label htmlFor="firstName" >FirstName</label>
-                    <input name="firstName"  value={formData.firstName} onChange={handleChange}/>
+                    <input name="firstName" id="firstName"  value={formData.firstName} onChange={handleChange}/>
                 </div>
                 <div>
                     <label htmlFor="lastName">LastName</label>
@@ -65,7 +75,7 @@ function Register(){
                 </div>
                 <button type="submit">Register</button>
             </form>
-            <p><Link to="/login">Already had an account? Log in</Link></p>
+            <p><Link to="/login">Already have an account? Log in</Link></p>
             {message && <p>{message}</p>}
         </div>
     );

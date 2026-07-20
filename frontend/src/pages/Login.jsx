@@ -1,6 +1,6 @@
 import { useState } from "react";
 import api from "../api/axiosConfig";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Login(){
     const [formData, setFormData] = useState(
@@ -25,12 +25,16 @@ function Login(){
         event.preventDefault();
 
         try{
+            if(!formData.email || !formData.password){
+                setMessage("Please enter email and password");
+                return;
+            }
             const response = await api.post("/auth/login", formData);
             const token = response.data.data.token;
             localStorage.setItem("token", token);
-            console.log(token);
             setMessage("Login Successful");
-            navigate("/dashboard");
+            window.location.href = "/dashboard";
+            // navigate("/dashboard");
         } catch(error){
             setMessage(error.response?.data?.message || "Login failed");
         }
