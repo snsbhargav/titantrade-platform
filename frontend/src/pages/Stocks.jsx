@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axiosConfig";
+import Alert from "../components/Alert";
 
 function Stocks(){
 
@@ -10,6 +11,7 @@ function Stocks(){
     const [totalPages, setTotalPages] = useState(0);
     const [last, setLast] = useState(false);
     const [search, setSearch] = useState("");
+    const [alertType, setAlertType] = useState("info");
     
     const fetchStock = async() => {
 
@@ -21,12 +23,12 @@ function Stocks(){
             setMessage("");
         } catch(error){
             setMessage(error?.response?.data?.message || "Stocks Retrieval Failed")
+            setAlertType("error");
 
         }
     };
     
     useEffect(() => {
-
         fetchStock();
         
         }, [page]);
@@ -43,6 +45,7 @@ function Stocks(){
         const quantity = quantities[stockId];
         if(!quantity || Number(quantity) <= 0){
             setMessage("Enter a valid quantity value")
+            setAlertType("warning");
             return;
         }
 
@@ -50,12 +53,14 @@ function Stocks(){
         try{
             const response = await api.post("/trades/buy", buyStockRequest);
             setMessage(response?.data?.message || "Stock bought successfully")
+            setAlertType("success");
             setQuantities({
                 ...quantities,
                 [stockId] : ""
             });
         } catch(error){
             setMessage(error?.response?.data?.message || "Trade action failed.")
+            setAlertType("error")
         }
     }
 
@@ -134,7 +139,7 @@ function Stocks(){
                 </div>
             </>
             )}
-            {message && <p>{message}</p>}
+            <Alert message={message} type={alertType}/>
         </div>
     );
 }

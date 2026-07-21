@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../api/axiosConfig";
 import { Link, useNavigate } from "react-router-dom";
+import Alert from "../components/Alert";
 
 function Register(){
 
@@ -13,6 +14,7 @@ function Register(){
     });
 
     const [message, setMessage] = useState("");
+    const [alertType, setAlertType] = useState("info");
 
     const handleChange = (event) => {
         const {name, value} = event.target;
@@ -34,13 +36,16 @@ function Register(){
                 !formData.gender
             ) {
                 setMessage("Please fill all required fields");
+                setAlertType("warning");
                 return;
             }
             const response = await api.post("/auth/register", formData);
             setMessage(response?.data?.message);
+            setAlertType("success");
             navigate("/login");
         } catch(error){
             setMessage(error.response?.data?.message || "Registration failed");
+            setAlertType("error");
         }
     };
 
@@ -76,7 +81,7 @@ function Register(){
                 <button type="submit">Register</button>
             </form>
             <p><Link to="/login">Already have an account? Log in</Link></p>
-            {message && <p>{message}</p>}
+            <Alert message={message} type={alertType}/>
         </div>
     );
 }

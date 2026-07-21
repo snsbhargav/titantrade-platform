@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axiosConfig";
+import Alert from "../components/Alert";
 
 function Portfolio(){
 
@@ -7,6 +8,7 @@ function Portfolio(){
     const [portfolio, setPortfolio] = useState(null);
     const [holdings, setHoldings] = useState([]);
     const [quantities, setQuantities] = useState({});
+    const [alertType, setAlertType] = useState("info");
 
     const getPortfolio = async() => {
         try{
@@ -19,6 +21,7 @@ function Portfolio(){
 
         } catch(error){
             setMessage(error?.response?.data?.message ?? "Failed to load portfolio");
+            setAlertType("error");
         }
     }
 
@@ -39,6 +42,7 @@ function Portfolio(){
         const quantity = quantities[stockId];
         if(!quantity || Number(quantity) <=0){
             setMessage("Please enter a valid quantity");
+            setAlertType("warning");
             return;
         }
         else{
@@ -46,6 +50,7 @@ function Portfolio(){
             try{
                 const response = await api.post("/trades/sell", sellRequest);
                 setMessage(response?.data?.message || "Stock sold successfully");
+                setAlertType("success");
                 setQuantities({
                     ...quantities,
                     [stockId] : ""
@@ -53,6 +58,7 @@ function Portfolio(){
                 await getPortfolio();
             } catch(error){
                 setMessage(error?.response?.data?.message || "Unable to sell the stock");
+                setAlertType("error");
             }
         }
     }
@@ -124,7 +130,7 @@ function Portfolio(){
 
                     </table>
                 }
-                {message && <p>{message}</p>}
+            <Alert message={message} type={alertType}/>
             </>
             )}
         </div>

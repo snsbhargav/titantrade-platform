@@ -1,6 +1,7 @@
 import { useState } from "react";
 import api from "../api/axiosConfig";
 import { Link, useNavigate } from "react-router-dom";
+import Alert from "../components/Alert";
 
 function Login(){
     const [formData, setFormData] = useState(
@@ -10,6 +11,7 @@ function Login(){
         }
     );
     const [message, setMessage] = useState("");
+    const [alertType, setAlertType] = useState("info");
 
     const handleChange = (event) => {
         const {name, value} = event.target;
@@ -27,16 +29,19 @@ function Login(){
         try{
             if(!formData.email || !formData.password){
                 setMessage("Please enter email and password");
+                setAlertType("error");
                 return;
             }
             const response = await api.post("/auth/login", formData);
             const token = response.data.data.token;
             localStorage.setItem("token", token);
             setMessage("Login Successful");
+            setAlertType("success");
             window.location.href = "/dashboard";
             // navigate("/dashboard");
         } catch(error){
             setMessage(error.response?.data?.message || "Login failed");
+            setAlertType("error");
         }
 
     };
@@ -58,7 +63,7 @@ function Login(){
 
             </form>
             <p><Link to="/register">Don't have an account? Create One</Link></p>
-            {message &&  <p>{message}</p>}
+            <Alert message={message} type={alertType}/>
         </div>
     );
 }

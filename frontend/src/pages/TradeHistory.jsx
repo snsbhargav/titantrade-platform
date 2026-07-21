@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axiosConfig";
+import Alert from "../components/Alert";
 
 function TradeHistory(){
 
@@ -10,6 +11,7 @@ function TradeHistory(){
     const [last, setLast] = useState(false);
     const [tradeType, setTradeType] = useState("");
     const [loading, setLoading] = useState(true);
+    const [alertType, setAlertType] = useState("info");
 
     const getTrades = async() => {
         try{
@@ -23,6 +25,7 @@ function TradeHistory(){
             setMessage("");
         } catch(error){
             setMessage(error?.response?.data?.message || "Trade history retrieval failed");
+            setAlertType("error");
         }
     }
     useEffect(() => {
@@ -92,7 +95,7 @@ function TradeHistory(){
                 </div>
             </>
             }
-            {message && <p>{message}</p>}
+            <Alert message={message} type={alertType}/>
         </div>
     );
 }

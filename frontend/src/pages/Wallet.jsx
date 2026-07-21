@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api/axiosConfig";
+import Alert from "../components/Alert";
 
 function Wallet(){
 
@@ -12,6 +13,7 @@ function Wallet(){
     const [withdrawAmount, setWithdrawAmount] = useState({
         amount:""
     });
+    const [alertType, setAlertType] = useState("info");
 
     const handleDepositChange = (event) => {
         const {name, value} = event.target;
@@ -43,6 +45,7 @@ function Wallet(){
 
             } catch(error){
                 setMessage(error?.response?.data?.message || "Failed to load wallet page.");
+                setAlertType("error");
             }
 
             
@@ -56,6 +59,7 @@ function Wallet(){
             const amount = depositAmount.amount;
             if(!amount || amount<=0){
                 setMessage("Enter valid amount");
+                setAlertType("warning");
                 return;
             }
             const requestBody = {amount: Number(amount)};
@@ -63,9 +67,11 @@ function Wallet(){
             setBalance(response?.data?.data?.balance ?? balance)
             setDepositAmount({amount:""});
             setMessage(response?.data?.message || "");
+            setAlertType("success");
 
         } catch(error){
             setMessage(error?.response?.data?.message || "Deposit failed");
+            setAlertType("error");
         }
         setDepositAmount({"amount":""});
         };
@@ -76,15 +82,18 @@ function Wallet(){
              const amount = withdrawAmount.amount;
             if(!amount || amount<=0){
                 setMessage("Enter valid amount");
+                setAlertType("warning");
                 return;
             }
             const requestBody = {amount: Number(amount)};
             const response = await api.post("/wallet/withdraw", requestBody);
             setBalance(response?.data?.data?.balance ?? balance)
             setMessage(response?.data?.message || "");
+            setAlertType("success");
             setWithdrawAmount({amount : ""});
         } catch(error){
             setMessage(error?.response?.data?.message || "Withdraw failed");
+            setAlertType("error");
         }
         setWithdrawAmount({"amount":""});
     };
@@ -107,7 +116,7 @@ function Wallet(){
                     <button type="submit">Withdraw</button>
                 </form>
             </div>
-            {message && <p>{message}</p>}
+            <Alert message={message} type={alertType}/>
         </div>
     );
 }
