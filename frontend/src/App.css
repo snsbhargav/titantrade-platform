@@ -8,7 +8,7 @@ body {
     margin: 10px;
 }
 /* NavBar */
-nav {
+nav{
     display: flex;
     background-color: #1E40AF;
     align-items: center;
@@ -22,7 +22,7 @@ nav a{
     margin : 10px;
 }
 
-nav a:hover {
+nav a:hover{
     text-decoration: underline;
 }
 
@@ -121,3 +121,36 @@ input, select{
     background-color: #FEF3C7;
     color: #92400E;
 }
+
+.dashboard-cards{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card{
+    padding: 10px 20px;
+    border: 1px solid #D1D5DB;
+    border-radius: 5px;
+    min-width: 20%;
+}
+.quick-actions {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.quick-actions a{
+    color: #F3F4F6;
+    font-weight: 600;
+    text-decoration: none;
+    padding: 10px;
+    margin : 10px;
+    background-color: #1E40AF;
+    border-radius: 5px;
+}
+.quick-actions a:hover{
+    text-decoration: underline;
+    background-color: #3B82F6;
+}
+
