@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api/axiosConfig";
 import Alert from "../components/Alert";
+import Pagination from "../components/Pagination";
 
 function Stocks(){
 
@@ -63,11 +64,10 @@ function Stocks(){
             setAlertType("error")
         }
     }
-
     const handlePrev = () => {
-        if(page>0) {
-            setPage(page-1);
-        }
+    if(page>0) {
+        setPage(page-1);
+    }
     }
 
     const handleNext = () => {
@@ -75,7 +75,6 @@ function Stocks(){
             setPage(page+1);
         }
     }
-
 
     return (
         <div className="body-content">
@@ -130,13 +129,8 @@ function Stocks(){
                     </tbody>
 
                 </table>
-                <div className="pagination">
-                    <button name="prev" onClick={handlePrev} disabled={page===0}>Prev</button>
-                    <button name="next" onClick={handleNext} disabled={last}>Next</button>
-                </div>
-                <div className="pagination-tail">
-                    <p >Page {page+1} of {totalPages}</p>
-                </div>
+                <Pagination page={page} last={last} totalPages={totalPages} handlePrev={handlePrev} handleNext={handleNext}/>
+                
             </>
             )}
             <Alert message={message} type={alertType}/>
