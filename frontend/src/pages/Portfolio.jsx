@@ -9,9 +9,11 @@ function Portfolio(){
     const [holdings, setHoldings] = useState([]);
     const [quantities, setQuantities] = useState({});
     const [alertType, setAlertType] = useState("info");
+    const [loading, setLoading] = useState(true);
 
     const getPortfolio = async() => {
         try{
+            setLoading(true);
             const response = await api.get("/portfolio");
             setPortfolio(response?.data?.data || null);
             setHoldings(response?.data?.data?.holdings || []);
@@ -20,8 +22,12 @@ function Portfolio(){
 
 
         } catch(error){
+            setPortfolio(null);
+            setHoldings([]);
             setMessage(error?.response?.data?.message ?? "Failed to load portfolio");
             setAlertType("error");
+        } finally{
+            setLoading(false);
         }
     }
 
@@ -65,8 +71,10 @@ function Portfolio(){
 
     return (
         <div className="body-content">
-            {!portfolio && <p>Portfolio Loading ....</p>}
-            {portfolio && (
+            <Alert type={alertType} message={message} />
+            {loading && <p>Portfolio Loading ....</p>}
+            {!loading && !portfolio && <p>Unable to load portfolio</p>}
+            {!loading && portfolio && (
             <>
                 <h1>Portfolio</h1>
                 <table border="1">
@@ -130,7 +138,6 @@ function Portfolio(){
 
                     </table>
                 }
-            <Alert message={message} type={alertType}/>
             </>
             )}
         </div>
