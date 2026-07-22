@@ -1,6 +1,7 @@
 package com.bhargav.titantrade.portfolio.service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,7 +43,7 @@ public class PortfolioHoldingService {
 			totalPortfolioValue = totalPortfolioValue.add(response.getMarketValue());
 			totalInvestedValue = totalInvestedValue.add(response.getInvestedValue());
 			totalUnrealizedProfitLoss = totalUnrealizedProfitLoss.add(response.getUnrealizedProfitLoss());
-			totalUnrealizedProfitLossPercentage = (totalUnrealizedProfitLoss.divide(totalInvestedValue))
+			totalUnrealizedProfitLossPercentage = (totalUnrealizedProfitLoss.divide(totalInvestedValue, 4, RoundingMode.HALF_UP))
 					.multiply(BigDecimal.valueOf(100));
 		}
 		PortfolioSummaryResponse portfolioSummaryResponse = new PortfolioSummaryResponse(holdingsDto,
