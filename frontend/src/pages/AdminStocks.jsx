@@ -1,0 +1,108 @@
+import { useState } from "react";
+import api from "../api/axiosConfig";
+import Alert from "../components/Alert";
+
+function AdminStocks(){
+
+    const [formData, setFormData] = useState({
+        ticker:"",
+        companyName:"",
+        lastKnownPrice : "",
+        exchange : "",
+        currency : "USD",
+        sector : "",
+        assetType : "STOCK"
+    });
+    const [message, setMessage] = useState("");
+    const [alertType, setAlertType] = useState("info");
+
+    const handleChange = (event) => {
+        const {name, value} = event.target;
+
+        setFormData({
+            ...formData,
+            [name]:value
+        });
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        if (
+            !formData.ticker ||
+            !formData.companyName ||
+            !formData.lastKnownPrice ||
+            Number(formData.lastKnownPrice) <= 0 ||
+            !formData.exchange ||
+            !formData.currency ||
+            !formData.currency === "" ||
+            !formData.sector ||
+            !formData.assetType ||
+            formData.assetType === "" 
+        ) {
+            setAlertType("warning");
+            setMessage("Please fill all fields with valid values");
+            return;
+        }
+        try{
+            const requestbody = {
+                ...formData,
+                lastKnownPrice : Number(formData.lastKnownPrice)
+            };
+            const response = await api.post("/stocks", requestbody);
+            setMessage(response?.data?.message || "Stock created!");
+            setAlertType("success");
+        } catch(error){
+            setMessage(error?.response?.data?.message || "Stock creation failed");
+            setAlertType("error");
+        }
+    };
+
+    return (
+        <div>
+            <form onSubmit={handleSubmit}>
+                <div>
+                    <label htmlFor="ticker">Ticker : </label>
+                    <input name="ticker" type="text" id="ticker" value={formData.ticker} onChange={handleChange}/>
+                </div>
+                <div>
+                    <label htmlFor="companyName">Company Name : </label>
+                    <input name="companyName" type="text" id="companyName" value={formData.companyName}  onChange={handleChange}/>
+                </div>
+                <div>
+                    <label htmlFor="lastKnownPrice">Last Known Price : </label>
+                    <input name="lastKnownPrice" type="number" id="lastKnownPrice" value={formData.lastKnownPrice}  onChange={handleChange}/>
+                </div>
+                <div>
+                    <label htmlFor="exchange">Exchange : </label>
+                    <input name="exchange" type="text" id="exchange" value={formData.exchange}  onChange={handleChange}/>
+                </div>
+                <div>
+                    <label htmlFor="currency">Currency : </label>
+                    <select name="currency" id="currency"  value={formData.currency}  onChange={handleChange}>
+                        <option value="">Select Currency</option>
+                        <option value="USD">USD</option>
+                        <option value="INR">INR</option>
+                    </select>
+                </div>
+                <div>
+                    <label htmlFor="sector">Sector : </label>
+                    <input name="sector" type="text" id="sector" value={formData.sector}  onChange={handleChange}/>
+                </div>
+                <div>
+                    <label htmlFor="assetType">AssetType : </label>
+                    <select name="assetType" id="assetType"  value={formData.assetType}  onChange={handleChange}>
+                        <option value="">Select Asset Type</option>
+                        <option value="STOCK">STOCK</option>
+                    </select>                
+                </div>
+                <div>
+                    <button type="submit">Create Stock</button>
+                </div>
+                
+            </form>
+            <Alert type={alertType} message={message}/>
+        </div>
+    );
+
+}
+export default AdminStocks;

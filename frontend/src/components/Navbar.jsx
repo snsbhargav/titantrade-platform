@@ -30,6 +30,7 @@ function Navbar(){
                         <Link to="/portfolio">Portfolio</Link> | {" "}
                         <Link to="/trades">Trades</Link> | {" "}
                         <Link to="/wallet">Wallet</Link>
+                        <Link to="/admin">Admin</Link>
                         <button type="button" onClick={handleLogout}>Logout</button>
                     </>
                 )

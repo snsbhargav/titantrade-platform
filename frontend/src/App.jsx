@@ -10,6 +10,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Dashboard from './pages/Dashboard'
 import ProtectedRoute from './components/ProtectedRoute'
+import AdminStocks from './pages/AdminStocks'
 
 function App() {
 
@@ -27,6 +28,7 @@ function App() {
         <Route path='/stocks' element={<ProtectedRoute><Stocks /></ProtectedRoute>}/>
         <Route path='/trades' element={<ProtectedRoute><TradeHistory /></ProtectedRoute>}/>
         <Route path='/wallet' element={<ProtectedRoute><Wallet /></ProtectedRoute>}/>
+        <Route path='/admin' element={<ProtectedRoute><AdminStocks/></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   )

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../api/axiosConfig";
+import Alert from "../components/Alert";
 
 function Dashboard(){
 
@@ -9,12 +10,13 @@ function Dashboard(){
     const [message, setMessage] = useState("");
     const [alertType, setAlertType] = useState("info");
     const [portfolio, setPortfolio] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const fetchWallet = async() => {
         try{
             const response = await api.get("/wallet/walletBalance");
-            setBalance(response?.data?.data?.balance || "");
-            setCurrency(response?.data?.data?.currency || "USD");
+            setBalance(response?.data?.data?.balance ?? "");
+            setCurrency(response?.data?.data?.currency ?? "USD");
             setMessage("");
         } catch(error){
             setMessage(error?.response?.data?.message || "Failed to retrieve wallet balance")
@@ -36,16 +38,21 @@ function Dashboard(){
     };
 
     useEffect(()=>{
-        fetchWallet();
-        fetchPortfolio();
+        const loadDashboard = async () => {
+            setLoading(true);
+            await Promise.allSettled([fetchWallet(), fetchPortfolio()]);
+            setLoading(false);
+        }
+        loadDashboard();
     }, []);
 
     return (
         <div className="body-content">
             <h1>Dashboard</h1>
             <h2>Welcome to Titan Trade</h2>
-            {!portfolio && <p>Failed to load Dashboard cards</p>}
-            {portfolio && 
+            <Alert type={alertType} message={message} />
+            {loading && <p>Dashboard Loading ....</p>}
+            {!loading && portfolio && 
             <>
             <div className="dashboard-cards">
                 <div className="card balance-card">
@@ -70,10 +77,10 @@ function Dashboard(){
             <div>
                 <h3>Quick Actions</h3>
                 <div className="quick-actions">
-                    <p><Link to="/stocks">Browse Stocks</Link></p>
-                    <p><Link to="/portfolio">View Portfolio</Link></p>
-                    <p><Link to="/wallet">Manage Wallet</Link></p>
-                    <p><Link to="/trades">Trade History</Link></p>
+                    <Link to="/stocks">Browse Stocks</Link>
+                    <Link to="/portfolio">View Portfolio</Link>
+                    <Link to="/wallet">Manage Wallet</Link>
+                    <Link to="/trades">Trade History</Link>
                 </div>
             </div>
         </div>
