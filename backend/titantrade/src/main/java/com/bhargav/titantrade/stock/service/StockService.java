@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.bhargav.titantrade.common.constants.DecimalConstants;
 import com.bhargav.titantrade.common.exception.StockAlreadyExistsException;
 import com.bhargav.titantrade.common.exception.StockNotFoundException;
 import com.bhargav.titantrade.common.response.ApiResponse;
@@ -47,21 +48,24 @@ public class StockService {
 	}
 
 	public ApiResponse getAllStocks(int page, int size, String search) {
-		if(page<0) page=0;
-		if(size<=0) size=10;
-		if(size>100) size=100;
+		if (page < 0)
+			page = 0;
+		if (size <= 0)
+			size = 10;
+		if (size > 100)
+			size = 100;
 		Specification<Stock> specification = Specification.allOf(StockSpecification.searchByTickerOrCompanyName(search),
 				StockSpecification.isActive());
 		Pageable pageable = PageRequest.of(page, size, Sort.by("ticker").ascending());
 		Page<Stock> stocks = stockRepository.findAll(specification, pageable);
-		
-		//Change entity into DTOs
+
+		// Change entity into DTOs
 		List<StockResponse> stockResponses = new ArrayList<>();
 		for (Stock stock : stocks.getContent()) {
 			stockResponses.add(StockResponse.toDto(stock));
 		}
-		
-		//Create Response Object
+
+		// Create Response Object
 		StockListResponse response = new StockListResponse();
 		response.setPage(page);
 		response.setSize(size);
@@ -82,7 +86,7 @@ public class StockService {
 		Stock stock = stockRepository.findById(stockId)
 				.orElseThrow(() -> new StockNotFoundException("Stock not found"));
 		LocalDateTime now = LocalDateTime.now();
-		stock.setLastKnownPrice(newPrice);
+		stock.setLastKnownPrice(newPrice.setScale(DecimalConstants.PRICE_SCALE, DecimalConstants.ROUNDING_MODE));
 		stock.setLastPriceUpdatedAt(now);
 
 		stockRepository.save(stock);
