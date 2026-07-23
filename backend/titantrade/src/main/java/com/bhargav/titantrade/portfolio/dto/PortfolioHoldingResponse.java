@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.bhargav.titantrade.common.constants.DecimalConstants;
 import com.bhargav.titantrade.portfolio.entity.PortfolioHolding;
 import com.bhargav.titantrade.stock.entity.Stock;
 
@@ -33,25 +34,33 @@ public class PortfolioHoldingResponse {
 	public static PortfolioHoldingResponse toDto(PortfolioHolding portfolioHolding) {
 		PortfolioHoldingResponse portfolioHoldingResponse = new PortfolioHoldingResponse();
 		Stock stock = portfolioHolding.getStock();
+		BigDecimal stockPrice = stock.getLastKnownPrice().setScale(DecimalConstants.PRICE_SCALE,
+				DecimalConstants.ROUNDING_MODE);
 		portfolioHoldingResponse.setHoldingId(portfolioHolding.getId());
 		portfolioHoldingResponse.setStockId(stock.getId());
 		portfolioHoldingResponse.setTicker(stock.getTicker());
 		portfolioHoldingResponse.setCompanyName(stock.getCompanyName());
-		portfolioHoldingResponse.setQuantity(portfolioHolding.getQuantity());
-		portfolioHoldingResponse.setAverageBuyPrice(portfolioHolding.getAverageBuyPrice());
-		portfolioHoldingResponse.setCurrentPrice(stock.getLastKnownPrice());
-		BigDecimal marketValue = portfolioHolding.getQuantity().multiply(stock.getLastKnownPrice());
+		portfolioHoldingResponse.setQuantity(portfolioHolding.getQuantity().setScale(DecimalConstants.QUANTITY_SCALE,
+				DecimalConstants.ROUNDING_MODE));
+		portfolioHoldingResponse.setAverageBuyPrice(portfolioHolding.getAverageBuyPrice()
+				.setScale(DecimalConstants.PRICE_SCALE, DecimalConstants.ROUNDING_MODE));
+		portfolioHoldingResponse.setCurrentPrice(stockPrice);
+
+		BigDecimal marketValue = portfolioHolding.getQuantity().multiply(stockPrice)
+				.setScale(DecimalConstants.PRICE_SCALE, DecimalConstants.ROUNDING_MODE);
 		portfolioHoldingResponse.setMarketValue(marketValue);
 		portfolioHoldingResponse.setCreatedOn(portfolioHolding.getCreatedOn());
 		portfolioHoldingResponse.setUpdatedOn(portfolioHolding.getUpdatedOn());
-		BigDecimal investedValue = portfolioHolding.getAverageBuyPrice().multiply(portfolioHolding.getQuantity());
-		portfolioHoldingResponse
-				.setInvestedValue(investedValue);
-		BigDecimal unrealizedProfitLoss = portfolioHoldingResponse.getMarketValue().subtract(portfolioHoldingResponse.getInvestedValue());
-		
+		BigDecimal investedValue = portfolioHolding.getAverageBuyPrice().multiply(portfolioHolding.getQuantity())
+				.setScale(DecimalConstants.PRICE_SCALE, DecimalConstants.ROUNDING_MODE);
+		portfolioHoldingResponse.setInvestedValue(investedValue);
+		BigDecimal unrealizedProfitLoss = portfolioHoldingResponse.getMarketValue()
+				.subtract(portfolioHoldingResponse.getInvestedValue())
+				.setScale(DecimalConstants.PRICE_SCALE, DecimalConstants.ROUNDING_MODE);
+
 		portfolioHoldingResponse.setUnrealizedProfitLoss(unrealizedProfitLoss);
-		BigDecimal unrealizedProfitLossPercentage = (unrealizedProfitLoss.divide(investedValue, 4, RoundingMode.HALF_UP)).multiply(BigDecimal.valueOf(100L));
-		
+		BigDecimal unrealizedProfitLossPercentage = (unrealizedProfitLoss.divide(investedValue,
+				DecimalConstants.PERCENTAGE_SCALE, DecimalConstants.ROUNDING_MODE)).multiply(BigDecimal.valueOf(100L));
 		portfolioHoldingResponse.setUnrealizedProfitLossPercentage(unrealizedProfitLossPercentage);
 		return portfolioHoldingResponse;
 	}

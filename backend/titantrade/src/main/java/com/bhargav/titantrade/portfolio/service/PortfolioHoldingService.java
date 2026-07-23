@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.bhargav.titantrade.common.constants.DecimalConstants;
 import com.bhargav.titantrade.common.response.ApiResponse;
 import com.bhargav.titantrade.common.security.CurrentUserService;
 import com.bhargav.titantrade.portfolio.dto.PortfolioHoldingResponse;
@@ -31,20 +32,30 @@ public class PortfolioHoldingService {
 		User user = currentUserService.getCurrentUser();
 		List<PortfolioHolding> holdings = portfolioHoldingRepository.findByUserIdAndQuantityGreaterThan(user.getId(),
 				BigDecimal.ZERO);
-		BigDecimal totalPortfolioValue = BigDecimal.ZERO;
-		BigDecimal totalInvestedValue = BigDecimal.ZERO;
-		BigDecimal totalUnrealizedProfitLoss = BigDecimal.ZERO;
-		BigDecimal totalUnrealizedProfitLossPercentage = BigDecimal.ZERO;
+		BigDecimal totalPortfolioValue = BigDecimal.ZERO.setScale(DecimalConstants.PRICE_SCALE,
+				DecimalConstants.ROUNDING_MODE);
+		BigDecimal totalInvestedValue = BigDecimal.ZERO.setScale(DecimalConstants.PRICE_SCALE,
+				DecimalConstants.ROUNDING_MODE);
+		BigDecimal totalUnrealizedProfitLoss = BigDecimal.ZERO.setScale(DecimalConstants.PRICE_SCALE,
+				DecimalConstants.ROUNDING_MODE);
+		BigDecimal totalUnrealizedProfitLossPercentage = BigDecimal.ZERO.setScale(DecimalConstants.PERCENTAGE_SCALE,
+				DecimalConstants.ROUNDING_MODE);
 		List<PortfolioHoldingResponse> holdingsDto = new ArrayList<>();
 		for (PortfolioHolding holding : holdings) {
 			PortfolioHoldingResponse response = PortfolioHoldingResponse.toDto(holding);
 			holdingsDto.add(response);
 
-			totalPortfolioValue = totalPortfolioValue.add(response.getMarketValue());
-			totalInvestedValue = totalInvestedValue.add(response.getInvestedValue());
-			totalUnrealizedProfitLoss = totalUnrealizedProfitLoss.add(response.getUnrealizedProfitLoss());
-			totalUnrealizedProfitLossPercentage = (totalUnrealizedProfitLoss.divide(totalInvestedValue, 4, RoundingMode.HALF_UP))
-					.multiply(BigDecimal.valueOf(100));
+			totalPortfolioValue = totalPortfolioValue.add(response.getMarketValue())
+					.setScale(DecimalConstants.PRICE_SCALE, DecimalConstants.ROUNDING_MODE);
+			totalInvestedValue = totalInvestedValue.add(response.getInvestedValue())
+					.setScale(DecimalConstants.PRICE_SCALE, DecimalConstants.ROUNDING_MODE);
+			totalUnrealizedProfitLoss = totalUnrealizedProfitLoss.add(response.getUnrealizedProfitLoss())
+					.setScale(DecimalConstants.PRICE_SCALE, DecimalConstants.ROUNDING_MODE);
+
+		}
+		if (totalInvestedValue.compareTo(BigDecimal.ZERO) > 0) {
+			totalUnrealizedProfitLossPercentage = (totalUnrealizedProfitLoss.multiply(BigDecimal.valueOf(100))
+					.divide(totalInvestedValue, DecimalConstants.PERCENTAGE_SCALE, DecimalConstants.ROUNDING_MODE));
 		}
 		PortfolioSummaryResponse portfolioSummaryResponse = new PortfolioSummaryResponse(holdingsDto,
 				totalPortfolioValue, totalInvestedValue, totalUnrealizedProfitLoss,

@@ -44,7 +44,7 @@ public class PortfolioHolding {
 	private Stock stock;
 	@Column(nullable = false, precision = 19, scale = 4)
 	private BigDecimal averageBuyPrice;
-	@Column(nullable = false, precision = 19, scale = 4)
+	@Column(nullable = false, precision = 19, scale = 6)
 	private BigDecimal quantity;
 	private LocalDateTime createdOn;
 	private LocalDateTime updatedOn;

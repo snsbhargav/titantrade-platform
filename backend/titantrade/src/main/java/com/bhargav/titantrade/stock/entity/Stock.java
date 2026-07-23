@@ -37,7 +37,7 @@ public class Stock {
 	private String ticker;
 	@Column(nullable = false)
 	private String companyName;
-	@Column(nullable = false)
+	@Column(nullable = false, scale = 4, precision = 19)
 	private BigDecimal lastKnownPrice;
 	@Column(nullable = false)
 	private LocalDateTime lastPriceUpdatedAt;
