@@ -1,0 +1,21 @@
+# PostgreSQL Database Configuration
+spring:
+  datasource:
+    url : jdbc:postgresql://localhost:5432/titantrade
+    username : ${DB_USERNAME:postgres}
+    password : ${DB_PASSWORD:CHANGE-ME}
+    driver-class-name : org.postgresql.Driver
+
+# Hibernate Configuration
+
+  jpa:
+    database-platform : org.hibernate.dialect.PostgreSQLDialect
+    hibernate :
+      ddl-auto : update
+    show-sql : true
+    
+  
+app:
+  jwt:
+    secret : ${JWT_SECRET:change-this-dev-secret-minimum-32-characters}
+    expiration-time-ms : ${EXPIRATION_TIME_MS:3600000}

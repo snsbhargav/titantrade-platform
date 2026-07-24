@@ -27,11 +27,14 @@ public class AuthService {
 	private final BCryptPasswordEncoder passwordEncoder;
 	
 	private final WalletRepository walletRepository;
+	
+	private final JwtService jwtService;
 
-	public AuthService(UserRepository userRepo, BCryptPasswordEncoder passwordEncoder, WalletRepository walletRepository) {
+	public AuthService(UserRepository userRepo, BCryptPasswordEncoder passwordEncoder, WalletRepository walletRepository, JwtService jwtService) {
 		this.userRepo = userRepo;
 		this.passwordEncoder = passwordEncoder;
 		this.walletRepository = walletRepository;
+		this.jwtService = jwtService;
 	}
 
 	public ApiResponse registerUser(RegisterUserRequest userRequest) {
@@ -64,7 +67,7 @@ public class AuthService {
 		if (passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
 
 			// Get Token from JwtService
-			String token = JwtService.generateToken(user.getEmail(), user.getId(), user.getRole());
+			String token = jwtService.generateToken(user.getEmail(), user.getId(), user.getRole());
 
 			LoginResponse loginResponse = new LoginResponse(user.getId(), user.getFirstName(), user.getLastName(),
 					user.getEmail(), user.getGender(), token, user.getRole());

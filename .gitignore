@@ -43,6 +43,7 @@ Thumbs.db
 ############################
 # Environment Variables
 ############################
+backend/titantrade/src/main/resources/application-dev.yml
 .env
 .env.*
 
