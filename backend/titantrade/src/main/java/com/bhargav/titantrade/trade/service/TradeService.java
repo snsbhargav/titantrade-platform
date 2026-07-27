@@ -1,7 +1,6 @@
 package com.bhargav.titantrade.trade.service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -11,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.bhargav.titantrade.common.constants.DecimalConstants;
 import com.bhargav.titantrade.common.exception.InactiveStockException;
@@ -34,10 +34,7 @@ import com.bhargav.titantrade.trade.enums.TradeStatus;
 import com.bhargav.titantrade.trade.enums.TradeType;
 import com.bhargav.titantrade.trade.repository.StockTransactionRepository;
 import com.bhargav.titantrade.user.entity.User;
-import com.bhargav.titantrade.wallet.dto.WalletAmountRequest;
 import com.bhargav.titantrade.wallet.service.WalletService;
-
-import jakarta.transaction.Transactional;
 
 @Service
 public class TradeService {
@@ -60,22 +57,7 @@ public class TradeService {
 		this.walletService = walletService;
 	}
 
-	private void recordStockTransaction(User user, Stock stock, BigDecimal pricePerShare, BigDecimal quantity,
-			BigDecimal totalAmount, TradeStatus tradeStatus, TradeType tradeType) {
-		StockTransaction stockTransaction = new StockTransaction();
-		stockTransaction.setUser(user);
-		stockTransaction.setStock(stock);
-		stockTransaction
-				.setPricePerShare(pricePerShare.setScale(DecimalConstants.PRICE_SCALE, DecimalConstants.ROUNDING_MODE));
-		stockTransaction
-				.setQuantity(quantity.setScale(DecimalConstants.QUANTITY_SCALE, DecimalConstants.ROUNDING_MODE));
-		stockTransaction
-				.setTotalAmount(totalAmount.setScale(DecimalConstants.PRICE_SCALE, DecimalConstants.ROUNDING_MODE));
-		stockTransaction.setTradeStatus(tradeStatus);
-		stockTransaction.setTradeType(tradeType);
-		stockTransactionRepository.save(stockTransaction);
-	}
-
+	@Transactional(readOnly = true)
 	public ApiResponse getMyTradeHistory(UUID stockId, TradeType tradeType, int page, int size) {
 		User user = currentUserService.getCurrentUser();
 		List<StockTransactionResponse> response = new ArrayList<>();
@@ -124,8 +106,10 @@ public class TradeService {
 
 		BigDecimal totalBuyPrice = executionPrice.multiply(quantity).setScale(DecimalConstants.PRICE_SCALE,
 				DecimalConstants.ROUNDING_MODE);
+		BigDecimal walletDebitAmount = totalBuyPrice.setScale(DecimalConstants.MONEY_SCALE,
+				DecimalConstants.ROUNDING_MODE);
 		// Update Wallet balance & wallet transaction
-		walletService.withdrawAmount(new WalletAmountRequest(totalBuyPrice));
+		walletService.debitCurrentUserWallet(walletDebitAmount);
 
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository
 				.findByUserIdAndStockId(user.getId(), buyStockRequest.getStockId()).orElse(null);
@@ -137,7 +121,7 @@ public class TradeService {
 			portfolioHolding = new PortfolioHolding(user, stock, executionPrice, quantity);
 		} else {
 			BigDecimal oldValue = portfolioHolding.getQuantity().multiply(portfolioHolding.getAverageBuyPrice())
-					.setScale(DecimalConstants.MONEY_SCALE, DecimalConstants.ROUNDING_MODE);
+					.setScale(DecimalConstants.PRICE_SCALE, DecimalConstants.ROUNDING_MODE);
 			BigDecimal newValue = totalBuyPrice;
 			BigDecimal combinedQuantity = portfolioHolding.getQuantity().add(quantity)
 					.setScale(DecimalConstants.QUANTITY_SCALE, DecimalConstants.ROUNDING_MODE);
@@ -145,13 +129,13 @@ public class TradeService {
 					DecimalConstants.ROUNDING_MODE);
 
 			portfolioHolding.setAverageBuyPrice(averageBuyPrice);
-			portfolioHolding.setQuantity(portfolioHolding.getQuantity().add(quantity));
+			portfolioHolding.setQuantity(combinedQuantity);
 		}
 		portfolioHoldingRepository.save(portfolioHolding);
 
 		// UpdateStock transaction
-		recordStockTransaction(user, stock, executionPrice, quantity, executionPrice.multiply(quantity),
-				TradeStatus.SUCCESS, TradeType.BUY);
+		recordStockTransaction(user, stock, executionPrice, quantity, totalBuyPrice, TradeStatus.SUCCESS,
+				TradeType.BUY);
 
 		return new ApiResponse(true, "Stock bought successfully", PortfolioHoldingResponse.toDto(portfolioHolding));
 	}
@@ -178,16 +162,34 @@ public class TradeService {
 		portfolioHoldingRepository.save(portfolioHolding);
 
 		// update wallet
-		walletService.depositAmount(new WalletAmountRequest(sellQuantity.multiply(executionPrice)
-				.setScale(DecimalConstants.MONEY_SCALE, DecimalConstants.ROUNDING_MODE)));
+		BigDecimal totalSellAmount = executionPrice.multiply(sellQuantity).setScale(DecimalConstants.PRICE_SCALE,
+				DecimalConstants.ROUNDING_MODE);
+
+		BigDecimal walletCreditAmount = totalSellAmount.setScale(DecimalConstants.MONEY_SCALE,
+				DecimalConstants.ROUNDING_MODE);
+		walletService.creditCurrentUserWallet(walletCreditAmount);
 
 		// add portfolio transaction
-		recordStockTransaction(
-				user, stock, executionPrice, sellQuantity, executionPrice.multiply(sellQuantity)
-						.setScale(DecimalConstants.PRICE_SCALE, DecimalConstants.ROUNDING_MODE),
-				TradeStatus.SUCCESS, TradeType.SELL);
+		recordStockTransaction(user, stock, executionPrice, sellQuantity, totalSellAmount, TradeStatus.SUCCESS,
+				TradeType.SELL);
 
 		return new ApiResponse(true, "Stock sold successfully", PortfolioHoldingResponse.toDto(portfolioHolding));
+	}
+
+	private void recordStockTransaction(User user, Stock stock, BigDecimal pricePerShare, BigDecimal quantity,
+			BigDecimal totalAmount, TradeStatus tradeStatus, TradeType tradeType) {
+		StockTransaction stockTransaction = new StockTransaction();
+		stockTransaction.setUser(user);
+		stockTransaction.setStock(stock);
+		stockTransaction
+				.setPricePerShare(pricePerShare.setScale(DecimalConstants.PRICE_SCALE, DecimalConstants.ROUNDING_MODE));
+		stockTransaction
+				.setQuantity(quantity.setScale(DecimalConstants.QUANTITY_SCALE, DecimalConstants.ROUNDING_MODE));
+		stockTransaction
+				.setTotalAmount(totalAmount.setScale(DecimalConstants.PRICE_SCALE, DecimalConstants.ROUNDING_MODE));
+		stockTransaction.setTradeStatus(tradeStatus);
+		stockTransaction.setTradeType(tradeType);
+		stockTransactionRepository.save(stockTransaction);
 	}
 
 }

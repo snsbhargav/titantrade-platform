@@ -17,27 +17,30 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/v1/wallet")
 public class WalletController {
-	
 
 	private final WalletService walletService;
-	
+
 	public WalletController(WalletService walletService) {
 		this.walletService = walletService;
 	}
-	
+
 	@GetMapping("/walletBalance")
-	public ResponseEntity<ApiResponse> getWallet() { 
-		return new ResponseEntity<ApiResponse>(walletService.findWalletByUser(), HttpStatus.OK);
+	public ResponseEntity<ApiResponse> getWallet() {
+		return new ResponseEntity<ApiResponse>(
+				new ApiResponse(true, "Wallet found successfully", walletService.findWalletByUser()), HttpStatus.OK);
 	}
-	
+
 	@PostMapping("/deposit")
-	public ResponseEntity<ApiResponse> depositAmount(@Valid @RequestBody WalletAmountRequest walletAmountRequest){
-		return new ResponseEntity<ApiResponse>(walletService.depositAmount(walletAmountRequest), HttpStatus.OK);
+	public ResponseEntity<ApiResponse> depositAmount(@Valid @RequestBody WalletAmountRequest walletAmountRequest) {
+		return new ResponseEntity<ApiResponse>(new ApiResponse(true, "Amount deposited successfully.",
+				walletService.depositAmount(walletAmountRequest)), HttpStatus.OK);
+
 	}
-	
+
 	@PostMapping("/withdraw")
-	public ResponseEntity<ApiResponse> withdrawAmount(@Valid @RequestBody WalletAmountRequest walletAmountRequest){
-		return new ResponseEntity<ApiResponse>(walletService.withdrawAmount(walletAmountRequest), HttpStatus.OK);
+	public ResponseEntity<ApiResponse> withdrawAmount(@Valid @RequestBody WalletAmountRequest walletAmountRequest) {
+		return new ResponseEntity<ApiResponse>(new ApiResponse(true, "Amount withdrawn successfully",
+				walletService.withdrawAmount(walletAmountRequest)), HttpStatus.OK);
 	}
 
 }
