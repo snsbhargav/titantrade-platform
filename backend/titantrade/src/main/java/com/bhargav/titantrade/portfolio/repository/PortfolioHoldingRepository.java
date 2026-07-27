@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.bhargav.titantrade.portfolio.entity.PortfolioHolding;
@@ -19,4 +20,12 @@ public interface PortfolioHoldingRepository extends JpaRepository<PortfolioHoldi
 	
 	List<PortfolioHolding> findByUserIdAndQuantityGreaterThan(UUID userId, BigDecimal quantity);
 
+	 @Query("""
+	           SELECT ph
+	           FROM PortfolioHolding ph
+	           JOIN FETCH ph.stock
+	           WHERE ph.user.id = :userId
+	           AND ph.quantity > :quantity
+	           """)
+	    List<PortfolioHolding> findActiveHoldingsWithStockByUserId(UUID userId, BigDecimal quantity);
 }

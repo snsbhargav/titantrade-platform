@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.bhargav.titantrade.common.constants.DecimalConstants;
 import com.bhargav.titantrade.common.response.ApiResponse;
@@ -28,9 +29,10 @@ public class PortfolioHoldingService {
 		this.currentUserService = currentUserService;
 	}
 
+	@Transactional(readOnly = true)
 	public ApiResponse getMyPortfolio() {
 		User user = currentUserService.getCurrentUser();
-		List<PortfolioHolding> holdings = portfolioHoldingRepository.findByUserIdAndQuantityGreaterThan(user.getId(),
+		List<PortfolioHolding> holdings = portfolioHoldingRepository.findActiveHoldingsWithStockByUserId(user.getId(),
 				BigDecimal.ZERO);
 		BigDecimal totalPortfolioValue = BigDecimal.ZERO.setScale(DecimalConstants.PRICE_SCALE,
 				DecimalConstants.ROUNDING_MODE);
