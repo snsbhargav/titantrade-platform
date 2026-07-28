@@ -76,7 +76,7 @@ public class Order {
 		LocalDateTime now = LocalDateTime.now();
 		this.createdOn = now;
 		this.updatedOn = now;
-		if(this.orderStatus == null)
+		if (this.orderStatus == null)
 			this.orderStatus = OrderStatus.PENDING;
 	}
 
@@ -84,6 +84,32 @@ public class Order {
 	protected void onUpdate() {
 		LocalDateTime now = LocalDateTime.now();
 		this.updatedOn = now;
+	}
+
+	public static Order createPendingOrder(User user, Stock stock, BigDecimal quantity, UUID idempotencyKey,
+			TradeType tradeType) {
+		Order order = new Order();
+		order.setUser(user);
+		order.setStock(stock);
+		order.setOrderStatus(OrderStatus.PENDING);
+		order.setQuantity(quantity);
+		order.setIdempotencyKey(idempotencyKey);
+		order.setTradeType(tradeType);
+		order.setRequestedPrice(
+				stock.getLastKnownPrice().setScale(DecimalConstants.PRICE_SCALE, DecimalConstants.ROUNDING_MODE));
+		return order;
+	}
+
+	public void markExecuted(BigDecimal executionPrice, BigDecimal totalAmount) {
+		this.executionPrice = executionPrice;
+		this.totalAmount = totalAmount;
+		this.executedAt = LocalDateTime.now();
+		this.orderStatus = OrderStatus.EXECUTED;
+	}
+
+	public void markRejected(String reason) {
+		this.orderStatus = OrderStatus.REJECTED;
+		this.rejectionReason = reason;
 	}
 
 }

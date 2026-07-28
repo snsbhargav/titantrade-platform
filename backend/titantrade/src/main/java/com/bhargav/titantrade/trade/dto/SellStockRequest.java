@@ -21,5 +21,7 @@ public class SellStockRequest {
 	@DecimalMin(value = "0.000001", message = "Quantity must be greater than zero.")
 	@Digits(integer = 13, fraction = 6, message = "Quantity can have up to 6 decimal places")
 	private BigDecimal quantity;
+	@NotNull(message = "idempotency key is required")
+	private UUID idempotencyKey;
 
 }

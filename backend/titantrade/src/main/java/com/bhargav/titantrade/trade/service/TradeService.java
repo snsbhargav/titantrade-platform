@@ -3,6 +3,7 @@ package com.bhargav.titantrade.trade.service;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.bhargav.titantrade.common.constants.DecimalConstants;
-import com.bhargav.titantrade.common.exception.InactiveStockException;
+import com.bhargav.titantrade.common.exception.InsufficientFundsException;
 import com.bhargav.titantrade.common.exception.InsufficientHoldingQuantityException;
 import com.bhargav.titantrade.common.exception.PortfolioHoldingNotFoundException;
 import com.bhargav.titantrade.common.exception.StockNotFoundException;
@@ -29,9 +30,11 @@ import com.bhargav.titantrade.trade.dto.BuyStockRequest;
 import com.bhargav.titantrade.trade.dto.SellStockRequest;
 import com.bhargav.titantrade.trade.dto.StockTransactionResponse;
 import com.bhargav.titantrade.trade.dto.TradeHistoryResponse;
+import com.bhargav.titantrade.trade.entity.Order;
 import com.bhargav.titantrade.trade.entity.StockTransaction;
 import com.bhargav.titantrade.trade.enums.TradeStatus;
 import com.bhargav.titantrade.trade.enums.TradeType;
+import com.bhargav.titantrade.trade.repository.OrderRepository;
 import com.bhargav.titantrade.trade.repository.StockTransactionRepository;
 import com.bhargav.titantrade.user.entity.User;
 import com.bhargav.titantrade.wallet.service.WalletService;
@@ -45,16 +48,18 @@ public class TradeService {
 	private final PortfolioHoldingRepository portfolioHoldingRepository;
 	private final StockRepository stockRepository;
 	private final WalletService walletService;
+	private final OrderRepository orderRepository;
 
 	public TradeService(StockTransactionRepository stockTransactionRepository, CurrentUserService currentUserService,
 			StockService stockService, PortfolioHoldingRepository portfolioHoldingRepository,
-			StockRepository stockRepository, WalletService walletService) {
+			StockRepository stockRepository, WalletService walletService, OrderRepository orderRepository) {
 		this.stockTransactionRepository = stockTransactionRepository;
 		this.currentUserService = currentUserService;
 		this.stockService = stockService;
 		this.portfolioHoldingRepository = portfolioHoldingRepository;
 		this.stockRepository = stockRepository;
 		this.walletService = walletService;
+		this.orderRepository = orderRepository;
 	}
 
 	@Transactional(readOnly = true)
@@ -93,14 +98,25 @@ public class TradeService {
 
 	@Transactional
 	public ApiResponse buyStock(BuyStockRequest buyStockRequest) {
+		UUID idempotencyKey = buyStockRequest.getIdempotencyKey();
+		User user = currentUserService.getCurrentUser();
+		Optional<Order> existingOrder = orderRepository.findByUserIdAndIdempotencyKey(user.getId(), idempotencyKey);
+		if (existingOrder.isPresent())
+			return new ApiResponse(true, "Order already exists", existingOrder.get().getId());
 		Stock stock = stockRepository.findById(buyStockRequest.getStockId())
 				.orElseThrow(() -> new StockNotFoundException("Stock not found"));
 		BigDecimal quantity = buyStockRequest.getQuantity().setScale(DecimalConstants.QUANTITY_SCALE,
 				DecimalConstants.ROUNDING_MODE);
+		Order order = Order.createPendingOrder(user, stock, quantity, idempotencyKey, TradeType.BUY);
+		order = orderRepository.save(order);
 		// If stock is inactive don't trade
-		if (!stock.isActive())
-			throw new InactiveStockException("Stock is inactive and cannot be traded");
-		User user = currentUserService.getCurrentUser();
+		if (!stock.isActive()) {
+			//mark order as rejected
+			order.markRejected("Stock is inactive and cannot be traded");
+			orderRepository.save(order);
+//			throw new InactiveStockException("Stock is inactive and cannot be traded");
+			return new ApiResponse(false, "Stock is inactive and cannot be traded", order.getId());
+		}
 		BigDecimal executionPrice = stock.getLastKnownPrice().setScale(DecimalConstants.PRICE_SCALE,
 				DecimalConstants.ROUNDING_MODE);
 
@@ -109,7 +125,14 @@ public class TradeService {
 		BigDecimal walletDebitAmount = totalBuyPrice.setScale(DecimalConstants.MONEY_SCALE,
 				DecimalConstants.ROUNDING_MODE);
 		// Update Wallet balance & wallet transaction
-		walletService.debitCurrentUserWallet(walletDebitAmount);
+		try {
+		    walletService.debitCurrentUserWallet(walletDebitAmount);
+		} catch (InsufficientFundsException ex) {
+		    order.markRejected("Insufficient funds");
+		    orderRepository.save(order);
+
+		    return new ApiResponse(false, "Insufficient funds", order.getId());
+		}
 
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository
 				.findByUserIdAndStockId(user.getId(), buyStockRequest.getStockId()).orElse(null);
@@ -136,7 +159,10 @@ public class TradeService {
 		// UpdateStock transaction
 		recordStockTransaction(user, stock, executionPrice, quantity, totalBuyPrice, TradeStatus.SUCCESS,
 				TradeType.BUY);
-
+		
+		//Mark order as executed
+		order.markExecuted(executionPrice, totalBuyPrice);
+		orderRepository.save(order);
 		return new ApiResponse(true, "Stock bought successfully", PortfolioHoldingResponse.toDto(portfolioHolding));
 	}
 
