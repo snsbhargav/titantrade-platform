@@ -27,6 +27,7 @@ import com.bhargav.titantrade.stock.entity.Stock;
 import com.bhargav.titantrade.stock.repository.StockRepository;
 import com.bhargav.titantrade.stock.service.StockService;
 import com.bhargav.titantrade.trade.dto.BuyStockRequest;
+import com.bhargav.titantrade.trade.dto.OrderResponse;
 import com.bhargav.titantrade.trade.dto.SellStockRequest;
 import com.bhargav.titantrade.trade.dto.StockTransactionResponse;
 import com.bhargav.titantrade.trade.dto.TradeHistoryResponse;
@@ -102,7 +103,7 @@ public class TradeService {
 		User user = currentUserService.getCurrentUser();
 		Optional<Order> existingOrder = orderRepository.findByUserIdAndIdempotencyKey(user.getId(), idempotencyKey);
 		if (existingOrder.isPresent())
-			return new ApiResponse(true, "Order already exists", existingOrder.get().getId());
+			return new ApiResponse(true, "Order already exists", OrderResponse.toDto(existingOrder.get()));
 		Stock stock = stockRepository.findById(buyStockRequest.getStockId())
 				.orElseThrow(() -> new StockNotFoundException("Stock not found"));
 		BigDecimal quantity = buyStockRequest.getQuantity().setScale(DecimalConstants.QUANTITY_SCALE,
@@ -111,11 +112,11 @@ public class TradeService {
 		order = orderRepository.save(order);
 		// If stock is inactive don't trade
 		if (!stock.isActive()) {
-			//mark order as rejected
+			// mark order as rejected
 			order.markRejected("Stock is inactive and cannot be traded");
 			orderRepository.save(order);
 //			throw new InactiveStockException("Stock is inactive and cannot be traded");
-			return new ApiResponse(false, "Stock is inactive and cannot be traded", order.getId());
+			return new ApiResponse(false, "Stock is inactive and cannot be traded", OrderResponse.toDto(order));
 		}
 		BigDecimal executionPrice = stock.getLastKnownPrice().setScale(DecimalConstants.PRICE_SCALE,
 				DecimalConstants.ROUNDING_MODE);
@@ -126,12 +127,12 @@ public class TradeService {
 				DecimalConstants.ROUNDING_MODE);
 		// Update Wallet balance & wallet transaction
 		try {
-		    walletService.debitCurrentUserWallet(walletDebitAmount);
+			walletService.debitCurrentUserWallet(walletDebitAmount);
 		} catch (InsufficientFundsException ex) {
-		    order.markRejected("Insufficient funds");
-		    orderRepository.save(order);
+			order.markRejected("Insufficient funds");
+			orderRepository.save(order);
 
-		    return new ApiResponse(false, "Insufficient funds", order.getId());
+			return new ApiResponse(false, "Insufficient funds", OrderResponse.toDto(order));
 		}
 
 		PortfolioHolding portfolioHolding = portfolioHoldingRepository
@@ -159,8 +160,8 @@ public class TradeService {
 		// UpdateStock transaction
 		recordStockTransaction(user, stock, executionPrice, quantity, totalBuyPrice, TradeStatus.SUCCESS,
 				TradeType.BUY);
-		
-		//Mark order as executed
+
+		// Mark order as executed
 		order.markExecuted(executionPrice, totalBuyPrice);
 		orderRepository.save(order);
 		return new ApiResponse(true, "Stock bought successfully", PortfolioHoldingResponse.toDto(portfolioHolding));
@@ -168,20 +169,37 @@ public class TradeService {
 
 	@Transactional
 	public ApiResponse sellStock(SellStockRequest sellStockRequest) {
+		User user = currentUserService.getCurrentUser();
+		UUID idempotencyKey = sellStockRequest.getIdempotencyKey();
+		Optional<Order> existingOrder = orderRepository.findByUserIdAndIdempotencyKey(user.getId(), idempotencyKey);
+		if (existingOrder.isPresent()) {
+			return new ApiResponse(true, "Order already exists", OrderResponse.toDto(existingOrder.get()));
+		}
 		Stock stock = stockRepository.findById(sellStockRequest.getStockId())
 				.orElseThrow(() -> new StockNotFoundException("Stock not found"));
-		User user = currentUserService.getCurrentUser();
-		PortfolioHolding portfolioHolding = portfolioHoldingRepository
-				.findByUserIdAndStockId(user.getId(), stock.getId())
-				.orElseThrow(() -> new PortfolioHoldingNotFoundException("Portfolio not found"));
 		BigDecimal sellQuantity = sellStockRequest.getQuantity().setScale(DecimalConstants.QUANTITY_SCALE,
 				DecimalConstants.ROUNDING_MODE);
+		// Create Pending order
+		Order order = Order.createPendingOrder(user, stock, sellQuantity, idempotencyKey, TradeType.SELL);
+		order = orderRepository.save(order);
+		Optional<PortfolioHolding> holdingOptional = portfolioHoldingRepository.findByUserIdAndStockId(user.getId(),
+				stock.getId());
+		if (holdingOptional.isEmpty()) {
+
+			order.markRejected("Portfolio not found");
+			orderRepository.save(order);
+			return new ApiResponse(false, "Portfolio not found", OrderResponse.toDto(order));
+		}
+		PortfolioHolding portfolioHolding = holdingOptional.get();
 		BigDecimal executionPrice = stock.getLastKnownPrice().setScale(DecimalConstants.PRICE_SCALE,
 				DecimalConstants.ROUNDING_MODE);
 
 		// update quantity in portfolio
 		if (portfolioHolding.getQuantity().compareTo(sellQuantity) < 0) {
-			throw new InsufficientHoldingQuantityException("Insufficient holdings");
+			order.markRejected("Insufficient holdings");
+			orderRepository.save(order);
+			return new ApiResponse(false, "Insufficient holdings", OrderResponse.toDto(order));
+//			throw new InsufficientHoldingQuantityException("Insufficient holdings");
 		}
 		portfolioHolding.setQuantity(portfolioHolding.getQuantity().subtract(sellQuantity)
 				.setScale(DecimalConstants.QUANTITY_SCALE, DecimalConstants.ROUNDING_MODE));
@@ -198,6 +216,9 @@ public class TradeService {
 		// add portfolio transaction
 		recordStockTransaction(user, stock, executionPrice, sellQuantity, totalSellAmount, TradeStatus.SUCCESS,
 				TradeType.SELL);
+
+		order.markExecuted(executionPrice, totalSellAmount);
+		orderRepository.save(order);
 
 		return new ApiResponse(true, "Stock sold successfully", PortfolioHoldingResponse.toDto(portfolioHolding));
 	}
