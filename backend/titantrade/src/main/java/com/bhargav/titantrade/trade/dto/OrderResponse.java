@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OrderResponse {
 
-	private UUID id;
+	private UUID orderId;
 	private UUID stockId;
 	private TradeType tradeType;
 	private OrderStatus orderStatus;
@@ -31,7 +31,7 @@ public class OrderResponse {
 	
 	public static OrderResponse toDto(Order order) {
 		OrderResponse orderResponse = new OrderResponse();
-		orderResponse.setId(order.getId());
+		orderResponse.setOrderId(order.getId());
 		orderResponse.setStockId(order.getStock().getId());
 		orderResponse.setTradeType(order.getTradeType());
 		orderResponse.setOrderStatus(order.getOrderStatus());
