@@ -2,11 +2,13 @@ package com.bhargav.titantrade.trade.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,9 +17,11 @@ import com.bhargav.titantrade.common.security.CurrentUserService;
 import com.bhargav.titantrade.trade.dto.OrderHistoryResponse;
 import com.bhargav.titantrade.trade.dto.OrderResponse;
 import com.bhargav.titantrade.trade.entity.Order;
+import com.bhargav.titantrade.trade.enums.OrderStatus;
+import com.bhargav.titantrade.trade.enums.TradeType;
 import com.bhargav.titantrade.trade.repository.OrderRepository;
+import com.bhargav.titantrade.trade.specification.OrderSpecification;
 import com.bhargav.titantrade.user.entity.User;
-
 
 @Service
 public class OrderService {
@@ -33,7 +37,8 @@ public class OrderService {
 	}
 
 	@Transactional(readOnly = true)
-	public ApiResponse getOrderHistoryByUser(int page, int size) {
+	public ApiResponse getOrderHistoryByUser(int page, int size, UUID stockId, TradeType tradeType,
+			OrderStatus orderStatus) {
 		if (size > 100)
 			size = 100;
 		if (size <= 0)
@@ -42,7 +47,11 @@ public class OrderService {
 			page = 0;
 		User user = currentUserService.getCurrentUser();
 		Pageable pageable = PageRequest.of(page, size, Sort.by("createdOn").descending());
-		Page<Order> orders = orderRepository.findByUserId(user.getId(), pageable);
+
+		Specification<Order> specification = Specification.allOf(OrderSpecification.filterByOnOrderStatus(orderStatus),
+				OrderSpecification.filterByOnStock(stockId), OrderSpecification.filterByOnTradeType(tradeType),
+				OrderSpecification.filterByUserId(user.getId()));
+		Page<Order> orders = orderRepository.findAll(specification, pageable);
 		List<OrderResponse> response = new ArrayList<>();
 		for (Order order : orders) {
 			response.add(OrderResponse.toDto(order));
