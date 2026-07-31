@@ -164,7 +164,7 @@ public class TradeService {
 		// Mark order as executed
 		order.markExecuted(executionPrice, totalBuyPrice);
 		orderRepository.save(order);
-		return new ApiResponse(true, "Stock bought successfully", PortfolioHoldingResponse.toDto(portfolioHolding));
+		return new ApiResponse(true, "Buy order executed successfully", OrderResponse.toDto(order));
 	}
 
 	@Transactional
@@ -220,7 +220,7 @@ public class TradeService {
 		order.markExecuted(executionPrice, totalSellAmount);
 		orderRepository.save(order);
 
-		return new ApiResponse(true, "Stock sold successfully", PortfolioHoldingResponse.toDto(portfolioHolding));
+		return new ApiResponse(true, "Sell order executed successfully", OrderResponse.toDto(order));
 	}
 
 	private void recordStockTransaction(User user, Stock stock, BigDecimal pricePerShare, BigDecimal quantity,

@@ -50,11 +50,18 @@ function Stocks(){
             return;
         }
 
-        const  buyStockRequest = {stockId : stockId, quantity : Number(quantities[stockId])};
+        const  buyStockRequest = {stockId : stockId, quantity : Number(quantities[stockId]), idempotencyKey : crypto.randomUUID()};
         try{
             const response = await api.post("/trades/buy", buyStockRequest);
-            setMessage(response?.data?.message || "Stock bought successfully")
-            setAlertType("success");
+            const order = response?.data?.data;
+            if(order.orderStatus === "EXECUTED"){
+                    setMessage(`${order.tradeType} order executed successfully`);
+                    setAlertType("success");
+                    
+            } else if(order.orderStatus === "REJECTED"){
+                setMessage(order.rejectionReason || "Order rejected");
+                setAlertType("error");
+            }
             setQuantities({
                 ...quantities,
                 [stockId] : ""

@@ -18,7 +18,7 @@ function Portfolio(){
             setPortfolio(response?.data?.data || null);
             setHoldings(response?.data?.data?.holdings || []);
             
-            setMessage("");
+            // setMessage("");
 
 
         } catch(error){
@@ -52,15 +52,23 @@ function Portfolio(){
             return;
         }
         else{
-            const sellRequest = {"stockId" : stockId, "quantity" : Number(quantity)};
+            const sellRequest = {"stockId" : stockId, "quantity" : Number(quantity), idempotencyKey : crypto.randomUUID()};
             try{
                 const response = await api.post("/trades/sell", sellRequest);
-                setMessage(response?.data?.message || "Stock sold successfully");
-                setAlertType("success");
+                const order = response?.data?.data;
+                if(order.orderStatus === "EXECUTED"){
+                    setMessage(`${order.tradeType} order executed successfully`);
+                    setAlertType("success");
+                    
+                } else if(order.orderStatus === "REJECTED"){
+                    setMessage(order.rejectionReason || "Order rejected");
+                    setAlertType("error");
+                }
                 setQuantities({
                     ...quantities,
                     [stockId] : ""
                 });
+
                 await getPortfolio();
             } catch(error){
                 setMessage(error?.response?.data?.message || "Unable to sell the stock");
