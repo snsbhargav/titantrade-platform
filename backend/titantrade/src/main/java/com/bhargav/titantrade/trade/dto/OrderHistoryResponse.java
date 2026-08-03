@@ -15,7 +15,7 @@ public class OrderHistoryResponse {
 	private int page;
 	private int totalPages;
 	private int size;
-	private boolean Last;
+	private boolean last;
 	private long totalElements;
 
 }

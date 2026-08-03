@@ -11,6 +11,7 @@ import Navbar from './components/Navbar'
 import Dashboard from './pages/Dashboard'
 import ProtectedRoute from './components/ProtectedRoute'
 import AdminStocks from './pages/AdminStocks'
+import Orders from './pages/Orders'
 
 function App() {
 
@@ -29,6 +30,7 @@ function App() {
         <Route path='/trades' element={<ProtectedRoute><TradeHistory /></ProtectedRoute>}/>
         <Route path='/wallet' element={<ProtectedRoute><Wallet /></ProtectedRoute>}/>
         <Route path='/admin' element={<ProtectedRoute><AdminStocks/></ProtectedRoute>} />
+        <Route path='/orders' element={<ProtectedRoute><Orders/></ProtectedRoute>}/>
       </Routes>
     </BrowserRouter>
   )

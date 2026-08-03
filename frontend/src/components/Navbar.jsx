@@ -31,6 +31,7 @@ function Navbar(){
                         <Link to="/trades">Trades</Link> | {" "}
                         <Link to="/wallet">Wallet</Link>
                         <Link to="/admin">Admin</Link>
+                        <Link to="/orders">Orders</Link>
                         <button type="button" onClick={handleLogout}>Logout</button>
                     </>
                 )
