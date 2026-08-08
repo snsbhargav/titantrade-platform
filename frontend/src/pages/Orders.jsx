@@ -82,7 +82,8 @@ function Orders(){
         <table>
             <thead>
                 <tr>
-                    <th>Stock Id</th>
+                    <th>Ticker</th>
+                    <th>Company Name</th>
                     <th>Trade Type</th>
                     <th>Order Status</th>
                     <th>Quantity</th>
@@ -98,7 +99,8 @@ function Orders(){
                 { orderList.length!==0 &&
                     orderList.map((order) => (
                         <tr key={order.orderId}>
-                            <td>{order.stockId}</td>
+                            <td>{order.ticker}</td>
+                            <td>{order.companyName}</td>
                             <td>{order.tradeType}</td>
                             <td>{order.orderStatus}</td>
                             <td>{order.quantity}</td>

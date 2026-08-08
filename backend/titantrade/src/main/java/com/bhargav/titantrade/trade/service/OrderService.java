@@ -33,7 +33,6 @@ public class OrderService {
 	public OrderService(CurrentUserService currentUserService, OrderRepository orderRepository) {
 		this.currentUserService = currentUserService;
 		this.orderRepository = orderRepository;
-		// TODO Auto-generated constructor stub
 	}
 
 	@Transactional(readOnly = true)

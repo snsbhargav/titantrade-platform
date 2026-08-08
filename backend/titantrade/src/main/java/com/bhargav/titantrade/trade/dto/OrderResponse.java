@@ -17,7 +17,8 @@ import lombok.NoArgsConstructor;
 public class OrderResponse {
 
 	private UUID orderId;
-	private UUID stockId;
+	private String ticker;
+	private String companyName;
 	private TradeType tradeType;
 	private OrderStatus orderStatus;
 	private BigDecimal quantity;
@@ -32,7 +33,8 @@ public class OrderResponse {
 	public static OrderResponse toDto(Order order) {
 		OrderResponse orderResponse = new OrderResponse();
 		orderResponse.setOrderId(order.getId());
-		orderResponse.setStockId(order.getStock().getId());
+		orderResponse.setTicker(order.getStock().getTicker());
+		orderResponse.setCompanyName(order.getStock().getCompanyName());
 		orderResponse.setTradeType(order.getTradeType());
 		orderResponse.setOrderStatus(order.getOrderStatus());
 		orderResponse.setQuantity(order.getQuantity());
